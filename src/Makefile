@@ -16,10 +16,10 @@ LDFLAGS =
 LIBS += -lpthread
 
 INCLUDE = csapp.h
-OBJS = csapp.o echo.o readfile.o
+OBJS = csapp.o readfile.o
 INCLDIR = -I.
 
-PROGS = echoserveri echoclient ftpserveur ftpclient
+PROGS = ftpserveur ftpclient
 
 
 all: $(PROGS)

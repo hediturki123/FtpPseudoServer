@@ -46,7 +46,6 @@ int main(int argc, char **argv)
     clientlen = (socklen_t)sizeof(clientaddr);
 
     listenfd = Open_listenfd(port);
-    //socklen_t serverlen = sizeof(clientaddr);
     while (1) {
 
         for (int i=0;i<NPROC;i++){

@@ -1,6 +1,4 @@
-/*
- * echo - read and echo text lines until client closes connection
- */
+
 #include "csapp.h"
 void nom_fichier(char *buf,char *nom){
     int i;
