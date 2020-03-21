@@ -22,20 +22,27 @@ void lecture_fichier(char buf[],int connfd){
     }
 }
 
+void transfere_fichier(char fichier[],int connfd){
+    int n;
+    //printf("faire cette fonction\n");
+    n=strlen("faire cette fonction: transfere_fichier\n");
+    Rio_writen(connfd,"faire cette fonction: transfere_fichier\n",n);
+}
+
 void decoupe(char commande[],char fichier[],char buf[]){
     int sauve_i,espace=0;
 
-    for(int i=0;buf[i]!='\0';i++){
-        printf("%c",buf[i]);
-        if(buf[i]==' '){espace=1;}
-        switch (espace){
-            case 0:
-                commande[i]=buf[i];
-                sauve_i=i;
-                break;
-            case 1:
-                fichier[i-sauve_i+1]=buf[i];
-                break;
+    for(int i=0;buf[i]!='\0' && buf[i]!='\n';i++){
+        if(buf[i]==' '){espace=1;sauve_i=i+1;}
+        else{
+            switch (espace){
+                case 0:
+                    commande[i]=buf[i];
+                    break;
+                case 1:
+                    fichier[i-sauve_i]=buf[i];
+                    break;
+            }
         }
     }
 }
@@ -51,7 +58,9 @@ void demande_client(int connfd)
     Rio_readinitb(&rio, connfd);
     while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
         decoupe(commande,fichier,buf);
-        printf("Commande=%s, Fichier=%s,\n",commande,fichier);
+        if(strcmp(commande,"get")==0){transfere_fichier(fichier,connfd);}
+        else if(strcmp(commande,"cat")==0){lecture_fichier(fichier,connfd);}
+        
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         
