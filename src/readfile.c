@@ -31,7 +31,6 @@ void transfere_fichier(char fichier[],int connfd){
 
 void decoupe(char commande[],char fichier[],char buf[]){
     int sauve_i,espace=0;
-
     for(int i=0;buf[i]!='\0' && buf[i]!='\n';i++){
         if(buf[i]==' '){espace=1;sauve_i=i+1;}
         else{
@@ -51,15 +50,15 @@ void demande_client(int connfd)
 {
     size_t n;
     char buf[MAXLINE];
-    char commande[MAXLINE];
+    char commande[10];
     char fichier[MAXLINE];
     rio_t rio;
 
     Rio_readinitb(&rio, connfd);
     while ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
         decoupe(commande,fichier,buf);
-        if(strcmp(commande,"get")==0){transfere_fichier(fichier,connfd);}
-        else if(strcmp(commande,"cat")==0){lecture_fichier(fichier,connfd);}
+        if(!strcmp(commande,"get")){transfere_fichier(fichier,connfd);}
+        else if(!strcmp(commande,"cat")){lecture_fichier(fichier,connfd);}
         
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
