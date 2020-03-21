@@ -26,11 +26,12 @@ void lecture_fichier(char buf[],int connfd){
 void transfere_fichier(char fichier[],int connfd){
     int fd;
     char buf[MAXLINE];
+    char message[MAXLINE];
     rio_t rp;
     fd=open(fichier,O_RDONLY,0);
     if(fd<0){
-        strcpy(buf,"Erreur de fichier\n");
-        Rio_writen(connfd,buf,strlen(buf));
+        strcpy(message,"Erreur de fichier\n");
+        Rio_writen(connfd,message,strlen(message));
     }
     else{
         Rio_writen(connfd,fichier,strlen(fichier));
@@ -39,6 +40,8 @@ void transfere_fichier(char fichier[],int connfd){
             Rio_writen(connfd,buf,strlen(buf));
         }
         Rio_writen(connfd,"EOF\n",4);
+        strcpy(message,"Transfer successfully complete.\n");
+        Rio_writen(connfd,message,strlen(message));
     }
     exit(0);
 }

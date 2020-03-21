@@ -44,8 +44,11 @@ int main(int argc, char **argv)
             printf("Nom du fichier en réception : %s\n",buf);        
             fd=open(buf,O_CREAT | O_WRONLY,0666);
             while(Rio_readlineb(&rio, buf, MAXLINE) > 0){
-                write(fd,buf,strlen(buf));
+                if(strcmp(buf,"EOF\n")==0){break;}
+                write(fd,buf,strlen(buf));    
             }
+            close(fd); // on a atteint la fin de fichier donc on le ferme
+            if(Rio_readlineb(&rio, buf, MAXLINE) > 0){printf("%s",buf);}// Affiche transfère
             exit(0);
         } else { /* the server has prematurely closed the connection */
             exit(0);
