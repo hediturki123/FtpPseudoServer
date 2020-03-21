@@ -11,12 +11,12 @@ int main(int argc, char **argv)
     struct sockaddr_in clientaddr;
     socklen_t clientlen = sizeof(clientaddr);
 
-    if (argc != 3) {
+    if (argc != 2) {
         fprintf(stderr, "usage: %s <host> <port>\n", argv[0]);
         exit(0);
     }
     host = argv[1];
-    port = atoi(argv[2]);
+    port = 2121;
 
     /*
      * Note that the 'host' can be a name or an IP address.
@@ -30,17 +30,17 @@ int main(int argc, char **argv)
      * and the server OS ... but it is possible that the server application
      * has not yet called "Accept" for this connection
      */
-    printf("client connected to server OS\n"); 
-    
+    printf("client connected to %s\n",argv[1]); 
     
     getpeername(clientfd, (SA *) &clientaddr, &clientlen);
     printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
     Rio_readinitb(&rio, clientfd);
-
+    printf("ftp>");
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
         if (Rio_readlineb(&rio, buf, MAXLINE) > 0) {
             Fputs(buf, stdout);
+            exit(0);
         } else { /* the server has prematurely closed the connection */
             break;
         }
