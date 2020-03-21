@@ -23,10 +23,22 @@ void lecture_fichier(char buf[],int connfd){
 }
 
 void transfere_fichier(char fichier[],int connfd){
-    int n;
-    //printf("faire cette fonction\n");
-    n=strlen("faire cette fonction: transfere_fichier\n");
-    Rio_writen(connfd,"faire cette fonction: transfere_fichier\n",n);
+    int fd;
+    char buf[MAXLINE];
+    rio_t rp;
+    fd=open(fichier,O_RDONLY,0);
+    if(fd<0){
+        strcpy(buf,"Erreur de fichier\n");
+        Rio_writen(connfd,buf,strlen(buf));
+    }
+    else{
+        Rio_writen(connfd,fichier,strlen(fichier));
+        Rio_readinitb(&rp,fd);
+        while(Rio_readlineb(&rp,buf,MAXLINE)!=0){
+            Rio_writen(connfd,buf,strlen(buf));
+        }
+        Rio_writen(connfd,"EOF\n",4);
+    }
 }
 
 void decoupe(char commande[],char fichier[],char buf[]){
