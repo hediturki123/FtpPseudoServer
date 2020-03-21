@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
     
-        if (Rio_readlineb(&rio, buf, MAXLINE) > 0) {
+        if (Rio_readlineb(&rio, &buf, strlen(buf)-4) > 0) {
             printf("Nom du fichier en réception : %s\n",buf);        
             fd=open(buf,O_CREAT | O_WRONLY,0666);
             while(Rio_readlineb(&rio, buf, MAXLINE) > 0){
