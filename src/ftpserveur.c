@@ -9,7 +9,7 @@
 pid_t nb_fils[NPROC];
 
 
-void readfile(int connfd);
+void demande_client(int connfd);
 
 
 
@@ -66,7 +66,7 @@ int main(int argc, char **argv)
                 printf("server connected to %s (%s)\n", client_hostname,
                     client_ip_string);
 
-                readfile(connfd);
+                demande_client(connfd);
                 Close(connfd);
             
             }
