@@ -38,11 +38,13 @@ int main(int argc, char **argv)
     printf("ftp>");
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
+    
         if (Rio_readlineb(&rio, buf, MAXLINE) > 0) {
-            printf("Nom du fichier en réception : %s\n",buf);
+            printf("Nom du fichier en réception : %s\n",buf);        
+            /*fd=open(buf,O_CREAT | O_WRONLY,0666);
             while(Rio_readlineb(&rio, buf, MAXLINE) > 0){
-                Fputs(buf, stdout);
-            }
+                write(fd,buf,strlen(buf));
+            }*/
             exit(0);
         } else { /* the server has prematurely closed the connection */
             break;
