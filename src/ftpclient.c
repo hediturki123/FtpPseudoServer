@@ -17,6 +17,7 @@ int main(int argc, char **argv)
     }
     host = argv[1];
     port = 2121;
+    int fd;
 
     /*
      * Note that the 'host' can be a name or an IP address.
@@ -41,13 +42,14 @@ int main(int argc, char **argv)
     
         if (Rio_readlineb(&rio, buf, MAXLINE) > 0) {
             printf("Nom du fichier en réception : %s\n",buf);        
-            /*fd=open(buf,O_CREAT | O_WRONLY,0666);
+            fd=open(buf,O_CREAT | O_WRONLY,0666);
             while(Rio_readlineb(&rio, buf, MAXLINE) > 0){
                 write(fd,buf,strlen(buf));
-            }*/
+            }
             exit(0);
         } else { /* the server has prematurely closed the connection */
-            break;
+            exit(0);
+            //break;
         }
     }
     Close(clientfd);

@@ -19,6 +19,7 @@ void lecture_fichier(char buf[],int connfd){
     while((n=Read(fd,&Rbuf,MAXLINE))!=0){
         Rio_writen(connfd, Rbuf, n);
         //Fputs(Rbuf,stdout);
+        exit(0);
     }
 }
 
@@ -30,6 +31,7 @@ void transfere_fichier(char fichier[],int connfd){
     if(fd<0){
         strcpy(buf,"Erreur de fichier\n");
         Rio_writen(connfd,buf,strlen(buf));
+   // exit(0);
     }
     else{
         Rio_writen(connfd,fichier,strlen(fichier));
@@ -38,7 +40,9 @@ void transfere_fichier(char fichier[],int connfd){
             Rio_writen(connfd,buf,strlen(buf));
         }*/
         //Rio_writen(connfd,"EOF\n",4);
+    //exit(0);
     }
+    exit(0);
 }
 
 void decoupe(char commande[],char fichier[],char buf[]){
@@ -76,5 +80,6 @@ void demande_client(int connfd)
         //printf("%s", buf);
         
     }
+
 }
 
