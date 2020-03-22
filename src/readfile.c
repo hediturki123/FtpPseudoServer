@@ -24,7 +24,7 @@ void lecture_fichier(char buf[],int connfd){
 }
 
 void transfere_fichier(char fichier[],int connfd){
-    int fd;
+    int fd,n;
     char buf[MAXLINE];
     char message[MAXLINE];
     rio_t rp;
@@ -36,12 +36,11 @@ void transfere_fichier(char fichier[],int connfd){
     else{
         Rio_writen(connfd,fichier,strlen(fichier));
         Rio_readinitb(&rp,fd);
-        while(Rio_readlineb(&rp,buf,MAXLINE)!=0){
-            Rio_writen(connfd,buf,strlen(buf));
+        while((n=Rio_readlineb(&rp,buf,MAXLINE))!=0){
+            Rio_writen(connfd,buf,n);
         }
-        Rio_writen(connfd,"EOF\n",4);
-        strcpy(message,"Transfer successfully complete.\n");
-        Rio_writen(connfd,message,strlen(message));
+        Close(fd);
+        Rio_writen(connfd,"EOF",3);
     }
     exit(0);
 }

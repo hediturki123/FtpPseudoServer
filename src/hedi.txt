@@ -1,2 +1,1 @@
-helloEOF
-Transfer successfully complete.
+hello
