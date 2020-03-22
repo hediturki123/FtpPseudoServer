@@ -16,7 +16,7 @@ int main(int argc, char **argv)
     socklen_t clientlen = sizeof(clientaddr);
 
     if (argc != 2) {
-        fprintf(stderr, "usage: %s <host> <port>\n", argv[0]);
+        fprintf(stderr, "usage: %s <host>\n", argv[0]);
         exit(0);
     }
     host = argv[1];
@@ -40,7 +40,7 @@ int main(int argc, char **argv)
     getpeername(clientfd, (SA *) &clientaddr, &clientlen);
     printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
     Rio_readinitb(&rio, clientfd);
-    printf("ftp>");
+    printf("ftp> ");
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
         debut=clock();
@@ -60,7 +60,7 @@ int main(int argc, char **argv)
             kilo_bits_par_sec=nb;
             kilo_bits_par_sec/=100;
             if(temps!=0.0){kilo_bits_par_sec/=temps;}
-            printf("%ld bites reçu en %f secondes\n (%f Kbits/sec)",b,temps,kilo_bits_par_sec);
+            printf("%ld bites reçu(s) en %f secondes\n(%f Kbits/sec)\n",b,temps,kilo_bits_par_sec);
             exit(0);
         } else { /* the server has prematurely closed the connection */
             exit(0);
