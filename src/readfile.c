@@ -1,4 +1,5 @@
 #include "csapp.h"
+#define TAILLE_BUFFER 256
 void nom_fichier(char *buf,char *nom){
     int i;
     for(i=0;buf[i]!='\n';i++){
@@ -36,8 +37,8 @@ void transfere_fichier(char fichier[],int connfd){
     else{
         Rio_writen(connfd,fichier,strlen(fichier));
         Rio_readinitb(&rp,fd);
-        while((n=Rio_readlineb(&rp,buf,MAXLINE))!=0){
-            Rio_writen(connfd,buf,n);
+        while((n=Rio_readlineb(&rp,buf,TAILLE_BUFFER))!=0 ){
+            Rio_writen(connfd,buf,n); 
         }
         Close(fd);
         Rio_writen(connfd,"EOF",3);

@@ -3,6 +3,8 @@
  */
 #include "csapp.h"
 #include <time.h>
+#define TAILLE_BUFFER 256
+
 
 int main(int argc, char **argv)
 {
@@ -47,8 +49,10 @@ int main(int argc, char **argv)
         if (Rio_readlineb(&rio, &buf, strlen(buf)-4) > 0) {
             printf("Nom du fichier en réception : %s\n",buf);        
             fd=open(buf,O_CREAT | O_WRONLY,0666);
-            while(Rio_readlineb(&rio, buf, MAXLINE) > 0){
-                if(strcmp(buf,"EOF\n")==0){break;}
+            while(Rio_readlineb(&rio, buf, TAILLE_BUFFER) > 0){
+                if(strcmp(buf,"EOF\n")==0){
+                    break;
+                }
                 b=strlen(buf);
                 write(fd,buf,b);
                 nb+=b;    
