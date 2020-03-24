@@ -66,6 +66,7 @@ int main(int argc, char **argv)
                     client_ip_string);
 
                 demande_client(connfd);
+                //Rio_readn(connfd,)
                 Close(connfd);
             
             }

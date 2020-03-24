@@ -46,6 +46,8 @@ int main(int argc, char **argv)
     printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
     Rio_readinitb(&rio, clientfd);
     printf("ftp> ");
+    int n;
+    int somme = 0;
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
         get_cmd(buf,cmd);
@@ -54,19 +56,24 @@ int main(int argc, char **argv)
             if (Rio_readlineb(&rio, &buf, strlen(buf)-4) > 0) {
                 printf("Nom du fichier en réception : %s\n",buf);        
                 fd=open(buf,O_CREAT | O_WRONLY,0666);
-                while(Rio_readlineb(&rio, buf, TAILLE_BUFFER) > 0){
+                while((n=Rio_readnb(&rio, buf, TAILLE_BUFFER)) > 0){
                     b=strlen(buf);
-                    write(fd,buf,b);
+                    printf("n = %d\n", n);
+                    //printf("b = %ld\n",b);
+                    somme += n;
+                    write(fd,buf,n);
                     nb+=b;    
                 }
+                printf("somme  = %d\n", somme);
+                Rio_writen(clientfd,buf,somme);
                 fin=clock();
                 Close(fd); // on a atteint la fin de fichier donc on le ferme
                 printf("Transfer successfully complete.\n");
                 temps=(double)(fin-debut)*1000/CLOCKS_PER_SEC;
-                kilo_bits_par_sec=nb;
+                kilo_bits_par_sec=somme;
                 kilo_bits_par_sec/=100;
                 if(temps!=0.0){kilo_bits_par_sec/=temps;}
-                printf("%ld bites reçu(s) en %f secondes\n(%f Kbits/sec)\n",b,temps,kilo_bits_par_sec);
+                printf("%d bytes received in %f seconds\n(%f Kbits/sec)\n",somme,temps,kilo_bits_par_sec);
                 exit(0);
             }
         }
