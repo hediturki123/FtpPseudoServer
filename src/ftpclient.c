@@ -81,7 +81,7 @@ int main(int argc, char **argv)
             printf("ok\n");
             exit(0);
         }
-        else if(!strcmp(cmd,"ls\n")){
+        else if(!strcmp(cmd,"ls")){
             //printf("Commande ls\n");
             Rio_readlineb(&rio,&buf,MAXLINE);
             printf("%s",buf);
