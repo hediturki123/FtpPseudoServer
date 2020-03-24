@@ -55,9 +55,6 @@ int main(int argc, char **argv)
                 printf("Nom du fichier en réception : %s\n",buf);        
                 fd=open(buf,O_CREAT | O_WRONLY,0666);
                 while(Rio_readlineb(&rio, buf, TAILLE_BUFFER) > 0){
-                    if(strcmp(buf,"EOF\n")==0){
-                        break;
-                    }
                     b=strlen(buf);
                     write(fd,buf,b);
                     nb+=b;    

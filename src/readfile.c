@@ -27,7 +27,6 @@ void transfere_fichier(char fichier[],int connfd){
     int fd,n;
     char buf[MAXLINE];
     char message[MAXLINE];
-    rio_t rp;
     fd=open(fichier,O_RDONLY,0);
     if(fd<0){
         strcpy(message,"Erreur de fichier\n");
@@ -36,7 +35,6 @@ void transfere_fichier(char fichier[],int connfd){
     else{
         int nbre_de_paquets = 0;
         Rio_writen(connfd,fichier,strlen(fichier));
-        Rio_readinitb(&rp,fd);
         while((n=Rio_readn(fd,buf,TAILLE_BUFFER))!=0 ){
             Rio_writen(connfd,buf,n); 
             printf("taille du buffer = %d\n",n);
@@ -46,7 +44,6 @@ void transfere_fichier(char fichier[],int connfd){
         }
         printf("nbre de paquets = %d",nbre_de_paquets);
         Close(fd);
-        Rio_writen(connfd,"EOF",3);
     }
     exit(0);
 }
