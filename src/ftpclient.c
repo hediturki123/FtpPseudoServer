@@ -5,11 +5,14 @@
 #include <time.h>
 #define TAILLE_BUFFER 256
 
+void get_cmd(char buf[],char cmd[]){
+    for(int i=0;buf[i]!=' ';i++)cmd[i]=buf[i];
+}
 
 int main(int argc, char **argv)
 {
     int clientfd, port;
-    char *host, buf[MAXLINE];
+    char *host, buf[MAXLINE],cmd[10];
     rio_t rio;
     double temps,kilo_bits_par_sec;
     clock_t debut,fin;
@@ -45,28 +48,36 @@ int main(int argc, char **argv)
     printf("ftp> ");
     while (Fgets(buf, MAXLINE, stdin) != NULL) {
         Rio_writen(clientfd, buf, strlen(buf));
-        debut=clock();
-        if (Rio_readlineb(&rio, &buf, strlen(buf)-4) > 0) {
-            printf("Nom du fichier en réception : %s\n",buf);        
-            fd=open(buf,O_CREAT | O_WRONLY,0666);
-            while(Rio_readlineb(&rio, buf, TAILLE_BUFFER) > 0){
-                if(strcmp(buf,"EOF\n")==0){
-                    break;
+        get_cmd(buf,cmd);
+        if(!strcmp(cmd,"get")){ // Code pour la commande get
+            debut=clock();
+            if (Rio_readlineb(&rio, &buf, strlen(buf)-4) > 0) {
+                printf("Nom du fichier en réception : %s\n",buf);        
+                fd=open(buf,O_CREAT | O_WRONLY,0666);
+                while(Rio_readlineb(&rio, buf, TAILLE_BUFFER) > 0){
+                    if(strcmp(buf,"EOF\n")==0){
+                        break;
+                    }
+                    b=strlen(buf);
+                    write(fd,buf,b);
+                    nb+=b;    
                 }
-                b=strlen(buf);
-                write(fd,buf,b);
-                nb+=b;    
+                fin=clock();
+                Close(fd); // on a atteint la fin de fichier donc on le ferme
+                printf("Transfer successfully complete.\n");
+                temps=(double)(fin-debut)*1000/CLOCKS_PER_SEC;
+                kilo_bits_par_sec=nb;
+                kilo_bits_par_sec/=100;
+                if(temps!=0.0){kilo_bits_par_sec/=temps;}
+                printf("%ld bites reçu(s) en %f secondes\n(%f Kbits/sec)\n",b,temps,kilo_bits_par_sec);
+                exit(0);
             }
-            fin=clock();
-            Close(fd); // on a atteint la fin de fichier donc on le ferme
-            printf("Transfer successfully complete.\n");
-            temps=(double)(fin-debut)*1000/CLOCKS_PER_SEC;
-            kilo_bits_par_sec=nb;
-            kilo_bits_par_sec/=100;
-            if(temps!=0.0){kilo_bits_par_sec/=temps;}
-            printf("%ld bites reçu(s) en %f secondes\n(%f Kbits/sec)\n",b,temps,kilo_bits_par_sec);
+        }
+        else if(!strcmp(cmd,"cat")){ // Code pour la commande cat
+            printf("ok\n");
             exit(0);
-        } else { /* the server has prematurely closed the connection */
+        } 
+        else { /* the server has prematurely closed the connection */
             exit(0);
             //break;
         }
