@@ -80,11 +80,17 @@ int main(int argc, char **argv)
         else if(!strcmp(cmd,"cat")){ // Code pour la commande cat
             printf("ok\n");
             exit(0);
-        } 
+        }
+        else if(!strcmp(cmd,"ls\n")){
+            //printf("Commande ls\n");
+            Rio_readlineb(&rio,&buf,MAXLINE);
+            printf("%s",buf);
+        }
         else { /* the server has prematurely closed the connection */
             exit(0);
             //break;
         }
+        printf("ftp> ");
     }
     Close(clientfd);
     exit(0);

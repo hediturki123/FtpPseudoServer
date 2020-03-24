@@ -65,6 +65,19 @@ void decoupe(char commande[],char fichier[],char buf[]){
     }
 }
 
+void affiche_rep(char commande[],int connfd){
+    char buf[MAXLINE];
+    char *cmd[] = {"ls"};
+    int n;
+    if (execvp(commande,cmd)==-1) { //remplace le l->err et execute execvp
+		//perror(cmd[0]);
+	}
+    while((n=read(1,&buf,MAXLINE))>0){
+        printf("%s",buf);
+        Rio_writen(connfd,buf,n);
+    }
+}
+
 void demande_client(int connfd)
 {
     size_t n;
@@ -78,7 +91,7 @@ void demande_client(int connfd)
         decoupe(commande,fichier,buf);
         if(!strcmp(commande,"get")){transfere_fichier(fichier,connfd);}
         else if(!strcmp(commande,"cat")){lecture_fichier(fichier,connfd);}
-        
+        else if(!strcmp(commande,"ls")){affiche_rep(commande,connfd);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         
