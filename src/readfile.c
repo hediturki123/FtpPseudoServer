@@ -1,4 +1,6 @@
 #include "csapp.h"
+#include <dirent.h>
+#include <unistd.h> 
 #define TAILLE_BUFFER 256
 void nom_fichier(char *buf,char *nom){
     int i;
@@ -87,12 +89,13 @@ void recup_fichier(char fichier[],int connfd,rio_t rio){
 }
 
 void affiche_rep(int connfd){ 
-    FILE *fp;
+    /*FILE *fp;
     char buf[MAXLINE];
     if((fp=popen("ls","r"))==NULL){printf("---erreur");}
     fscanf(fp,"%s",buf);
     printf("%s",buf);
-    pclose(fp);
+    pclose(fp);*/
+
 }
 
 void creation_repertoire(char fichier[],int connfd){
