@@ -9,12 +9,16 @@ HEADERDIR = ../header
 SERVEURDIR = SERVEUR
 
 CC = gcc
+
 SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(SRCS:$(SRCDIR)/%.c=$(OBJSDIR)/%.o)
 OBJS_SERV=$(patsubst $(OBJSDIR)/$(FTPCLIENT).o,,$(OBJS))
 OBJS_CLIENT=$(patsubst $(OBJSDIR)/$(FTPSERVEUR).o,,$(OBJS))
 
 CFLAGS = -Wall -Werror -I $(HEADERDIR)
+ifdef DEBUG
+CFLAGS+= -g -DDEBUG=$(DEBUG)
+endif
 LDFLAGS =
 
 LIBS += -lpthread

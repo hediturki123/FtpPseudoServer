@@ -2,7 +2,7 @@
 #define TAILLE_BUFFER 256
 void nom_fichier(char *buf,char *nom){
     int i;
-    for(i=0;buf[i]!='\n';i++){
+    for(i=0;buf[i]!='\n' && buf[i]!='\0';i++){
         nom[i]=buf[i];
     }
     nom[i]='\0';
@@ -34,6 +34,7 @@ void transfere_fichier(char fichier[],int connfd){
     }
     else{
         int nbre_de_paquets = 0;
+        strcat(fichier,"\n");
         Rio_writen(connfd,fichier,strlen(fichier));
         while((n=Rio_readn(fd,buf,TAILLE_BUFFER))!=0 ){
             Rio_writen(connfd,buf,n); 
@@ -65,17 +66,33 @@ void decoupe(char commande[],char fichier[],char buf[]){
     }
 }
 
-void affiche_rep(char commande[],int connfd){
-    char buf[MAXLINE];
-    char *cmd[] = {"ls"};
-    int n;
-    if (execvp(commande,cmd)==-1) { //remplace le l->err et execute execvp
-		//perror(cmd[0]);
-	}
-    while((n=read(1,&buf,MAXLINE))>0){
-        printf("%s",buf);
-        Rio_writen(connfd,buf,n);
+void recup_fichier(char fichier[],int connfd,rio_t rio){
+    int fd,n;
+    char buf[MAXBUF];
+    char message[MAXBUF];
+    nom_fichier(fichier,buf);
+    fd=open(buf,O_CREAT | O_WRONLY,0666);
+    if(fd<0){
+        strcpy(message,"Erreur de fichier\n");
+        Rio_writen(connfd,message,strlen(message));
     }
+    else{
+        strcpy(message,"Création du fichier ok\n");
+        Rio_writen(connfd,message,strlen(message));
+        while((n=Rio_readnb(&rio,buf,TAILLE_BUFFER))>0){
+            write(fd,buf,n);
+        }
+    }
+    close(fd);
+}
+
+void affiche_rep(int connfd){
+    FILE *fp;
+    char buf[MAXLINE];
+    if((fp=popen("ls","r"))==NULL){printf("---erreur");}
+    fscanf(fp,"%s",buf);
+    printf("%s",buf);
+    pclose(fp);
 }
 
 void demande_client(int connfd)
@@ -91,7 +108,8 @@ void demande_client(int connfd)
         decoupe(commande,fichier,buf);
         if(!strcmp(commande,"get")){transfere_fichier(fichier,connfd);}
         else if(!strcmp(commande,"cat")){lecture_fichier(fichier,connfd);}
-        else if(!strcmp(commande,"ls")){affiche_rep(commande,connfd);}
+        else if(!strcmp(commande,"ls")){affiche_rep(connfd);}
+        else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         
