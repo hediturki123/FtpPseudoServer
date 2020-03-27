@@ -86,7 +86,7 @@ void recup_fichier(char fichier[],int connfd,rio_t rio){
     close(fd);
 }
 
-void affiche_rep(int connfd){
+void affiche_rep(int connfd){ 
     FILE *fp;
     char buf[MAXLINE];
     if((fp=popen("ls","r"))==NULL){printf("---erreur");}
@@ -109,6 +109,19 @@ void creation_repertoire(char fichier[],int connfd){
     }
 }
 
+void remove_file(char fichier[],int connfd){
+    char message[MAXBUF];
+    char buf[MAXBUF];
+    nom_fichier(fichier,buf);
+    if(remove(fichier)==0){
+        strcpy(message,"Fichier supprimé\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+    else{
+        strcpy(message,"Fichier supprimé\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+}
 void demande_client(int connfd)
 {
     size_t n;
@@ -125,6 +138,7 @@ void demande_client(int connfd)
         else if(!strcmp(commande,"ls")){affiche_rep(connfd);}
         else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
         else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
+        else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         

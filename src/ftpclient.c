@@ -77,6 +77,11 @@ void create_mkdir(rio_t rio,int clientfd,char buf[]){
     printf("%s",buf);
 
 }
+void supp_fich(rio_t rio,int clientfd,char buf[]){
+    Rio_writen(clientfd, buf, MAXBUF);
+    Rio_readlineb(&rio,buf,MAXBUF);
+    printf("%s",buf);
+}
 int main(int argc, char **argv)
 {
     int clientfd, port;
@@ -149,6 +154,9 @@ int main(int argc, char **argv)
         }
         else if(!strcmp(cmd,"mkdir")){
             create_mkdir(rio,clientfd,buf);
+        }
+        else if(!strcmp(cmd,"rm")){
+            supp_fich(rio,clientfd,buf);
         }
         else if(!strcmp(cmd,"Bye")){
             printf("Fin de la connection\n");
