@@ -60,7 +60,7 @@ void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
         Rio_writen(clientfd, buf, MAXBUF);
         Rio_readlineb(&rio,buf,MAXBUF);
         printf("%s",buf);
-        if(!strcmp(buf,"Création ok\n")){
+        if(!strcmp(buf,"Création du fichier ok\n")){
             while((n=Read(fd,donnee,TAILLE_BUFFER))>0){
                 Rio_writen(clientfd,donnee,n);
             }
@@ -71,7 +71,12 @@ void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
     }
     close(fd);
 }
+void create_mkdir(rio_t rio,int clientfd,char buf[]){
+    Rio_writen(clientfd, buf, MAXBUF);
+    Rio_readlineb(&rio,buf,MAXBUF);
+    printf("%s",buf);
 
+}
 int main(int argc, char **argv)
 {
     int clientfd, port;
@@ -141,6 +146,9 @@ int main(int argc, char **argv)
             //printf("Commande ls\n");
             Rio_readlineb(&rio,&buf,MAXLINE);
             printf("%s",buf);
+        }
+        else if(!strcmp(cmd,"mkdir")){
+            create_mkdir(rio,clientfd,buf);
         }
         else if(!strcmp(cmd,"Bye")){
             printf("Fin de la connection\n");

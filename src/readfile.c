@@ -95,6 +95,20 @@ void affiche_rep(int connfd){
     pclose(fp);
 }
 
+void creation_repertoire(char fichier[],int connfd){
+    char message[MAXBUF];
+    char buf[MAXBUF];
+    nom_fichier(fichier,buf);
+    if(mkdir(buf,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)<0){
+        strcpy(message,"Erreur lors de la création du repertoir\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+    else{
+        strcpy(message,"Repertoir créé\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+}
+
 void demande_client(int connfd)
 {
     size_t n;
@@ -110,6 +124,7 @@ void demande_client(int connfd)
         else if(!strcmp(commande,"cat")){lecture_fichier(fichier,connfd);}
         else if(!strcmp(commande,"ls")){affiche_rep(connfd);}
         else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
+        else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         
