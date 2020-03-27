@@ -152,18 +152,14 @@ int main(int argc, char **argv)
             Rio_readlineb(&rio,&buf,MAXLINE);
             printf("%s",buf);
         }
-        else if(!strcmp(cmd,"mkdir")){
-            create_mkdir(rio,clientfd,buf);
-        }
-        else if(!strcmp(cmd,"rm")){
-            supp_fich(rio,clientfd,buf);
-        }
+        else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
+        else if(!strcmp(cmd,"rm")){supp_fich(rio,clientfd,buf);}
         else if(!strcmp(cmd,"Bye")){
             printf("Fin de la connection\n");
             Close(clientfd);
             //exit(0);
         }
-	else if(!strcmp(cmd,"cd")){
+	    else if(!strcmp(cmd,"cd")){
             Rio_writen(clientfd, buf, strlen(buf));
             printf("changement de repertoire\n");
             Rio_readlineb(&rio,&buf,MAXLINE);

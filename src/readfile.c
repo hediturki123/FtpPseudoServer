@@ -1,6 +1,6 @@
 #include "csapp.h"
 #include <dirent.h>
-#include <unistd.h> 
+
 #define TAILLE_BUFFER 256
 void nom_fichier(char *buf,char *nom){
     int i;
