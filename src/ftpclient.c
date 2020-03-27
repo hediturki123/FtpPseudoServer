@@ -163,6 +163,11 @@ int main(int argc, char **argv)
             Close(clientfd);
             //exit(0);
         }
+	else if(!strcmp(cmd,"cd")){
+            Rio_writen(clientfd, buf, strlen(buf));
+            printf("changement de repertoire\n");
+            Rio_readlineb(&rio,&buf,MAXLINE);
+        }
         else { /* the server has prematurely closed the connection */
             exit(0);
             //break;

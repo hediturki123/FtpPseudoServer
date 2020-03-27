@@ -8,7 +8,7 @@
 #define NPROC 2
 pid_t nb_fils[NPROC];
 
-void demande_client(int connfd);
+int demande_client(int connfd);
 
 
 

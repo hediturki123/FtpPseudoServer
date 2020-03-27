@@ -122,7 +122,17 @@ void remove_file(char fichier[],int connfd){
         Rio_writen(connfd,message,strlen(message));
     }
 }
-void demande_client(int connfd)
+void change_directory(int connfd,char fichier[MAXBUF]){
+    char nom[MAXBUF];
+    char message[MAXBUF];
+    nom_fichier(fichier,nom);
+    if (chdir(nom) == 0){
+        strcpy(message,"ok\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+}
+
+int demande_client(int connfd)
 {
     size_t n;
     char buf[MAXLINE];
@@ -138,11 +148,14 @@ void demande_client(int connfd)
         else if(!strcmp(commande,"ls")){affiche_rep(connfd);}
         else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
         else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
+else if (!strcmp(commande,"cd")){change_directory(connfd,fichier);}
         else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         
     }
+    return 0;
 
 }
+
 
