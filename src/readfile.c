@@ -1,5 +1,6 @@
 #include "csapp.h"
 #include <dirent.h>
+#define _GNU_SOURCE
 
 #define TAILLE_BUFFER 256
 void nom_fichier(char *buf,char *nom){
@@ -154,7 +155,8 @@ void change_directory(int connfd,char fichier[MAXBUF]){
     }
 }
 
-void remove_folder(char fichier[],int connfd){
+int remove_rec(char fichier[],int connfd){
+    int n=0;
     struct dirent *dir;
     char buf[MAXBUF];
     DIR *d = opendir(fichier);
@@ -163,21 +165,35 @@ void remove_folder(char fichier[],int connfd){
         while ((dir = readdir(d)) != NULL){
             //printf("%s\n", dir->d_name);
             if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
-            if (dir->d_type == DT_DIR){
-                remove_folder(dir->d_name,connfd);
-            }
             else {
-                strcpy(buf,dir->d_name);
-                remove(buf);
+                if (dir->d_type == DT_DIR){
+                    n+=remove_rec(dir->d_name,connfd);
+                }
+                else{
+                    strcpy(buf,dir->d_name);
+                    if(remove(buf)!=0){n++;}
+                }
             }
         }
         chdir("..");
         closedir(d);
         rmdir(fichier);
-        exit(0);
     }
+    return n;
 }
 
+void remove_folder(char fichier[],int connfd){
+    char message[MAXBUF];
+    if(remove_rec(fichier,connfd)==0){
+        strcpy(message,"Le répertoir a été supprimé\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+    else{
+        strcpy(message,"Le répertoir n'a pas pu être supprimé\n");
+        Rio_writen(connfd,message,strlen(message));
+    }
+    exit(0);
+}
 void chemin(int connfd){
     char cwd[MAXBUF];
     getcwd(cwd, sizeof(cwd));

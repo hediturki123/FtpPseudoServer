@@ -171,7 +171,7 @@ int main(int argc, char **argv)
         else if(!strcmp(cmd,"rm -r")){
             Rio_writen(clientfd, buf, strlen(buf));
             while(Rio_readnb(&rio,&buf,MAXLINE)>0){
-            printf("%s\n",buf);
+            printf("%s",buf);
             }
         }
         else if (!strcmp(cmd,"pwd")){
