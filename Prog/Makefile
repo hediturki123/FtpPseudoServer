@@ -14,6 +14,7 @@ SRCS=$(wildcard $(SRCDIR)/*.c)
 OBJS=$(SRCS:$(SRCDIR)/%.c=$(OBJSDIR)/%.o)
 OBJS_SERV=$(patsubst $(OBJSDIR)/$(FTPCLIENT).o,,$(OBJS))
 OBJS_CLIENT=$(patsubst $(OBJSDIR)/$(FTPSERVEUR).o,,$(OBJS))
+OPTION=-std=c99 -D_BSD_SOURCE
 
 CFLAGS = -Wall -Werror -I $(HEADERDIR)
 ifdef DEBUG
@@ -31,10 +32,10 @@ $(OBJSDIR)/%.o:$(SRCDIR)/%.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(SERVEURDIR)/$(FTPSERVEUR):$(OBJS_SERV)
-	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
+	$(CC) $(OPTION) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 $(FTPCLIENT):$(OBJS_CLIENT)
-	$(CC) -o $@ $(LDFLAGS) $^ $(LIBS)
+	$(CC) $(OPTION) -o $@ $(LDFLAGS) $^ $(LIBS)
 
 
 
