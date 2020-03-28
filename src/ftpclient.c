@@ -62,6 +62,7 @@ void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
     }
     else{
         Rio_writen(clientfd, buf, MAXBUF);
+        memset(buf,0,MAXBUF);
         Rio_readlineb(&rio,buf,MAXBUF);
         printf("%s",buf);
         if(!strcmp(buf,"Création du fichier ok\n")){
@@ -83,6 +84,7 @@ void create_mkdir(rio_t rio,int clientfd,char buf[]){
 }
 void supp_fich(rio_t rio,int clientfd,char buf[]){
     Rio_writen(clientfd, buf, MAXBUF);
+    memset(buf,0,MAXBUF);
     Rio_readlineb(&rio,buf,MAXBUF);
     printf("%s",buf);
 }
@@ -147,12 +149,16 @@ int main(int argc, char **argv)
             printf("Fin du transfère\n");
 
         }
-        else if(!strcmp(cmd,"cat")){ // Code pour la commande cat
-            printf("ok\n");
-            //exit(0);
+        else if(!strcmp(cmd,"cat")){
+            Rio_writen(clientfd, buf, strlen(buf));
+            memset(buf,0,MAXBUF);
+            while(Rio_readnb(&rio,buf,MAXBUF)){
+                Fputs(buf,stdout);
+            }
         }
         else if(!strcmp(cmd,"ls")){
             Rio_writen(clientfd,buf,strlen(buf));
+            memset(buf,0,MAXBUF);
             Rio_readnb(&rio,&buf,MAXLINE);
             printf("%s\n",buf);
 
@@ -166,16 +172,19 @@ int main(int argc, char **argv)
 	    else if(!strcmp(cmd,"cd")){
             Rio_writen(clientfd, buf, strlen(buf));
             printf("changement de repertoire\n");
+            memset(buf,0,MAXBUF);
             Rio_readlineb(&rio,&buf,MAXLINE);
         }
         else if(!strcmp(cmd,"rm -r")){
             Rio_writen(clientfd, buf, strlen(buf));
+            memset(buf,0,MAXBUF);
             while(Rio_readnb(&rio,&buf,MAXLINE)>0){
             printf("%s",buf);
             }
         }
         else if (!strcmp(cmd,"pwd")){
             Rio_writen(clientfd,buf,strlen(buf));
+            memset(buf,0,MAXBUF);
             Rio_readlineb(&rio,&buf,MAXLINE);
             printf("%s\n",buf);
         }

@@ -219,13 +219,11 @@ int demande_client(int connfd)
         else if(!strcmp(commande,"ls")){affiche_rep(connfd,fichier);}
         else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
         else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
-        else if (!strcmp(commande,"cd")){change_directory(connfd,fichier);}
+        else if(!strcmp(commande,"cd")){change_directory(connfd,fichier);}
         else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
         else if(!strcmp(commande,"rm -r")){remove_folder(fichier,connfd);}
-        else if (!strcmp(commande,"pwd")){chemin(connfd);}
-        else if (!strcmp(commande,"bye")){
-            return 1;
-        }
+        else if(!strcmp(commande,"pwd")){chemin(connfd);}
+        else if(!strcmp(commande,"bye")){return 1;}
         
     }
     return 0;
