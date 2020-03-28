@@ -54,7 +54,17 @@ void transfere_fichier(char fichier[],int connfd){
 void decoupe(char commande[],char fichier[],char buf[]){
     int sauve_i,espace=0;
     for(int i=0;buf[i]!='\0' && buf[i]!='\n';i++){
-        if(buf[i]==' '){espace=1;sauve_i=i+1;}
+        if(buf[i]==' '){
+            if(buf[i+1]=='-' && buf[i+2]=='r'){
+                espace=1;
+                sauve_i=i+4;
+                strcat(commande," -r");
+            }
+            else{
+                espace=1;
+                sauve_i=i+1;
+            }
+        }
         else{
             switch (espace){
                 case 0:
@@ -127,7 +137,7 @@ void remove_file(char fichier[],int connfd){
     char message[MAXBUF];
     char buf[MAXBUF];
     nom_fichier(fichier,buf);
-    if(remove(fichier)==0){
+    if(remove(buf)==0){
         strcpy(message,"Fichier supprimé\n");
         Rio_writen(connfd,message,strlen(message));
     }
@@ -143,6 +153,30 @@ void change_directory(int connfd,char fichier[MAXBUF]){
     if (chdir(nom) == 0){
         strcpy(message,"ok\n");
         Rio_writen(connfd,message,strlen(message));
+    }
+}
+
+void remove_folder(char fichier[],int connfd){
+    struct dirent *dir;
+    char buf[MAXBUF];
+    DIR *d = opendir(fichier);
+    chdir(fichier);
+    if (d){
+        while ((dir = readdir(d)) != NULL){
+            //printf("%s\n", dir->d_name);
+            if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
+            if (dir->d_type == DT_DIR){
+                remove_folder(dir->d_name,connfd);
+            }
+            else {
+                strcpy(buf,dir->d_name);
+                remove(buf);
+            }
+        }
+        chdir("..");
+        closedir(d);
+        rmdir(fichier);
+        exit(0);
     }
 }
 
@@ -164,6 +198,7 @@ int demande_client(int connfd)
         else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
         else if (!strcmp(commande,"cd")){change_directory(connfd,fichier);}
         else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
+        else if(!strcmp(commande,"rm -r")){remove_folder(fichier,connfd);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
         else if (!strcmp(commande,"bye")){

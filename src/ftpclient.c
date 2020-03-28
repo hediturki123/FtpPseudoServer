@@ -6,7 +6,11 @@
 #define TAILLE_BUFFER 256
 
 void get_cmd(char buf[],char cmd[]){
-    for(int i=0;buf[i]!=' ' && buf[i] != '\n';i++)cmd[i]=buf[i];
+    int i;
+    for(i=0;buf[i]!=' ' && buf[i] != '\n';i++)cmd[i]=buf[i];
+    if(buf[i+1]=='-' && buf[i+2]=='r'){
+        strcat(cmd," -r");
+    }
 }
 
 void get_fichier(char buf[],char fichier[]){
@@ -150,11 +154,9 @@ int main(int argc, char **argv)
         else if(!strcmp(cmd,"ls")){
             //printf("Commande ls\n");
             //Rio_readlineb(&rio,&buf,MAXLINE);
-            ssize_t n;
             Rio_writen(clientfd,buf,strlen(buf));
-            n = Rio_readnb(&rio,&buf,MAXLINE);
-            buf[n-1]='\0';
-            printf("%s",buf);
+            Rio_readnb(&rio,&buf,MAXLINE);
+            printf("%s\n",buf);
 
         }
         else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
@@ -168,6 +170,12 @@ int main(int argc, char **argv)
             Rio_writen(clientfd, buf, strlen(buf));
             printf("changement de repertoire\n");
             Rio_readlineb(&rio,&buf,MAXLINE);
+        }
+        else if(!strcmp(cmd,"rm -r")){
+            Rio_writen(clientfd, buf, strlen(buf));
+            while(Rio_readnb(&rio,&buf,MAXLINE)>0){
+            printf("%s\n",buf);
+            }
         }
         //else { /* the server has prematurely closed the connection */
         //    exit(0);
