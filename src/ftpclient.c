@@ -6,7 +6,7 @@
 #define TAILLE_BUFFER 256
 
 void get_cmd(char buf[],char cmd[]){
-    for(int i=0;buf[i]!=' ';i++)cmd[i]=buf[i];
+    for(int i=0;buf[i]!=' ' && buf[i] != '\n';i++)cmd[i]=buf[i];
 }
 
 void get_fichier(char buf[],char fichier[]){
@@ -133,7 +133,7 @@ int main(int argc, char **argv)
                 fin=clock();
                 printf("Transfer successfully complete.\n");
                 stat_transfere(debut,fin,somme);
-                exit(0);
+                //exit(0);
             }
         }
         else if(!strcmp(cmd,"put")){
@@ -145,29 +145,32 @@ int main(int argc, char **argv)
         }
         else if(!strcmp(cmd,"cat")){ // Code pour la commande cat
             printf("ok\n");
-            exit(0);
+            //exit(0);
         }
         else if(!strcmp(cmd,"ls")){
             //printf("Commande ls\n");
-            Rio_readlineb(&rio,&buf,MAXLINE);
-            printf("%s",buf);
+            //Rio_readlineb(&rio,&buf,MAXLINE);
+            Rio_writen(clientfd,buf,strlen(buf));
+            Rio_readnb(&rio,&buf,MAXLINE);
+            printf("%s\n",buf);
+
         }
         else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
         else if(!strcmp(cmd,"rm")){supp_fich(rio,clientfd,buf);}
-        else if(!strcmp(cmd,"Bye")){
+        else if(!strcmp(cmd,"bye")){
             printf("Fin de la connection\n");
-            Close(clientfd);
-            //exit(0);
+            //Close(clientfd);
+            exit(0);
         }
 	    else if(!strcmp(cmd,"cd")){
             Rio_writen(clientfd, buf, strlen(buf));
             printf("changement de repertoire\n");
             Rio_readlineb(&rio,&buf,MAXLINE);
         }
-        else { /* the server has prematurely closed the connection */
-            exit(0);
+        //else { /* the server has prematurely closed the connection */
+        //    exit(0);
             //break;
-        }
+        //}
         printf("ftp> ");
     }
     Close(clientfd);

@@ -88,14 +88,21 @@ void recup_fichier(char fichier[],int connfd,rio_t rio){
     close(fd);
 }
 
-void affiche_rep(int connfd){ 
-    /*FILE *fp;
-    char buf[MAXLINE];
-    if((fp=popen("ls","r"))==NULL){printf("---erreur");}
-    fscanf(fp,"%s",buf);
-    printf("%s",buf);
-    pclose(fp);*/
-
+void affiche_rep(int connfd, char fichier[MAXBUF]){ 
+    
+    struct dirent *dir;
+    char nom[MAXBUF];
+    //nom_fichier(fichier,nom);
+    DIR *d = opendir("."); 
+    if (d){
+        while ((dir = readdir(d)) != NULL){
+            //printf("%s\n", dir->d_name);
+            strcpy(nom,dir->d_name);
+            Rio_writen(connfd,nom,strlen(nom));
+        }
+        closedir(d);
+        exit(0);
+    }
 }
 
 void creation_repertoire(char fichier[],int connfd){
@@ -103,7 +110,7 @@ void creation_repertoire(char fichier[],int connfd){
     char buf[MAXBUF];
     nom_fichier(fichier,buf);
     if(mkdir(buf,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)<0){
-        strcpy(message,"Erreur lors de la création du repertoir\n");
+        strcpy(message,"Erreur lors de la création du repertoire\n");
         Rio_writen(connfd,message,strlen(message));
     }
     else{
@@ -148,13 +155,16 @@ int demande_client(int connfd)
         decoupe(commande,fichier,buf);
         if(!strcmp(commande,"get")){transfere_fichier(fichier,connfd);}
         else if(!strcmp(commande,"cat")){lecture_fichier(fichier,connfd);}
-        else if(!strcmp(commande,"ls")){affiche_rep(connfd);}
+        else if(!strcmp(commande,"ls")){affiche_rep(connfd,fichier);}
         else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
         else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
-else if (!strcmp(commande,"cd")){change_directory(connfd,fichier);}
+        else if (!strcmp(commande,"cd")){change_directory(connfd,fichier);}
         else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
         //printf("server received %u bytes\n", (unsigned int)n);
         //printf("%s", buf);
+        else if (!strcmp(commande,"bye")){
+            return 1;
+        }
         
     }
     return 0;
