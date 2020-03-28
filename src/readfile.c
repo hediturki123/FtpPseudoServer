@@ -97,9 +97,12 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
     if (d){
         while ((dir = readdir(d)) != NULL){
             //printf("%s\n", dir->d_name);
-            strcpy(nom,dir->d_name);
-            strcat(nom, " ");
-            Rio_writen(connfd,nom,strlen(nom));
+            if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
+            else {
+                strcpy(nom,dir->d_name);
+                strcat(nom, " ");
+                Rio_writen(connfd,nom,strlen(nom));
+            }
         }
         closedir(d);
         exit(0);

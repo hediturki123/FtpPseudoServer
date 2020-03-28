@@ -150,9 +150,11 @@ int main(int argc, char **argv)
         else if(!strcmp(cmd,"ls")){
             //printf("Commande ls\n");
             //Rio_readlineb(&rio,&buf,MAXLINE);
+            ssize_t n;
             Rio_writen(clientfd,buf,strlen(buf));
-            Rio_readnb(&rio,&buf,MAXLINE);
-            printf("%s\n",buf);
+            n = Rio_readnb(&rio,&buf,MAXLINE);
+            buf[n-1]='\0';
+            printf("%s",buf);
 
         }
         else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
