@@ -102,11 +102,9 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
     
     struct dirent *dir;
     char nom[MAXBUF];
-    //nom_fichier(fichier,nom);
     DIR *d = opendir("."); 
     if (d){
         while ((dir = readdir(d)) != NULL){
-            //printf("%s\n", dir->d_name);
             if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
             else {
                 strcpy(nom,dir->d_name);
@@ -180,6 +178,15 @@ void remove_folder(char fichier[],int connfd){
     }
 }
 
+void chemin(int connfd){
+    char cwd[MAXBUF];
+    getcwd(cwd, sizeof(cwd));
+    Rio_writen(connfd,cwd,strlen(cwd));
+    exit(0);
+}
+
+
+
 int demande_client(int connfd)
 {
     size_t n;
@@ -199,8 +206,7 @@ int demande_client(int connfd)
         else if (!strcmp(commande,"cd")){change_directory(connfd,fichier);}
         else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
         else if(!strcmp(commande,"rm -r")){remove_folder(fichier,connfd);}
-        //printf("server received %u bytes\n", (unsigned int)n);
-        //printf("%s", buf);
+        else if (!strcmp(commande,"pwd")){chemin(connfd);}
         else if (!strcmp(commande,"bye")){
             return 1;
         }

@@ -152,8 +152,6 @@ int main(int argc, char **argv)
             //exit(0);
         }
         else if(!strcmp(cmd,"ls")){
-            //printf("Commande ls\n");
-            //Rio_readlineb(&rio,&buf,MAXLINE);
             Rio_writen(clientfd,buf,strlen(buf));
             Rio_readnb(&rio,&buf,MAXLINE);
             printf("%s\n",buf);
@@ -163,7 +161,6 @@ int main(int argc, char **argv)
         else if(!strcmp(cmd,"rm")){supp_fich(rio,clientfd,buf);}
         else if(!strcmp(cmd,"bye")){
             printf("Fin de la connection\n");
-            //Close(clientfd);
             exit(0);
         }
 	    else if(!strcmp(cmd,"cd")){
@@ -176,6 +173,11 @@ int main(int argc, char **argv)
             while(Rio_readnb(&rio,&buf,MAXLINE)>0){
             printf("%s\n",buf);
             }
+        }
+        else if (!strcmp(cmd,"pwd")){
+            Rio_writen(clientfd,buf,strlen(buf));
+            Rio_readlineb(&rio,&buf,MAXLINE);
+            printf("%s\n",buf);
         }
         //else { /* the server has prematurely closed the connection */
         //    exit(0);
