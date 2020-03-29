@@ -33,7 +33,6 @@ int main(int argc, char **argv)
     char client_ip_string[INET_ADDRSTRLEN];
     char client_hostname[MAX_NAME_LEN];
     pid_t pid;
-    Signal(SIGINT,handler);
 
 /*
     if (argc != 2) {
@@ -45,39 +44,35 @@ int main(int argc, char **argv)
     clientlen = (socklen_t)sizeof(clientaddr);
 
     listenfd = Open_listenfd(port);
-    while (1) {
+    
 
-        for (int i=0;i<NPROC;i++){
-            
-            pid=fork();
-            if (pid==0){
-                connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
-                getsockname(connfd, (SA *) &clientaddr, &clientlen);
-                printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
-            /* determine the name of the client */
-                Getnameinfo((SA *) &clientaddr, clientlen,
-                            client_hostname, MAX_NAME_LEN, 0, 0, 0);
-                
-                /* determine the textual representation of the client's IP address */
-                Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
-                        INET_ADDRSTRLEN);
-                
-                printf("server connected to %s (%s)\n", client_hostname,
+        for (int i=0;i<NPROC;i++)
+            if ((pid=Fork())!=0){break;}
+
+        Signal(SIGINT,handler);
+        while (1) {
+            connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+            getsockname(connfd, (SA *) &clientaddr, &clientlen);
+            printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));/* determine the name of the client */
+            Getnameinfo((SA *) &clientaddr, clientlen,
+                    client_hostname, MAX_NAME_LEN, 0, 0, 0);
+                    /* determine the textual representation of the client's IP address */
+            Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
+                    INET_ADDRSTRLEN);
+                    
+            printf("server connected to %s (%s)\n", client_hostname,
                     client_ip_string);
 
-                demande_client(connfd);
+            demande_client(connfd);
                 //Rio_readn(connfd,)
-                Close(connfd);
-            
-            }
-            
+            Close(connfd);
         }
+            
+            
         if(waitpid(pid,NULL,0)==-1){
                 printf("error\n");
         }
 
-
-    }
     exit(0);
 }
 
