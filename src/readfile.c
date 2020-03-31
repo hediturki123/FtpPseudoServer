@@ -81,8 +81,8 @@ void decoupe(char commande[],char fichier[],char buf[]){
 
 void recup_fichier(char fichier[],int connfd,rio_t rio){
     int fd,n;
-    char buf[TAILLE_BUFFER];
-    char message[TAILLE_BUFFER];
+    char buf[MAXBUF];
+    char message[MAXBUF];
     nom_fichier(fichier,buf);
     fd=open(buf,O_CREAT | O_WRONLY,0666);
     if(fd<0){
@@ -110,6 +110,7 @@ void affiche_rep(int connfd){
             else {
                 strcpy(nom,dir->d_name);
                 strcat(nom, " ");
+                printf("nom : %s", nom);
                 Rio_writen(connfd,nom,strlen(nom));
             }
         }
@@ -118,8 +119,8 @@ void affiche_rep(int connfd){
 }
 
 void creation_repertoire(char fichier[],int connfd){
-    char message[TAILLE_BUFFER];
-    char buf[TAILLE_BUFFER];
+    char message[MAXBUF];
+    char buf[MAXBUF];
     nom_fichier(fichier,buf);
     if(mkdir(buf,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)<0){
         strcpy(message,"Erreur lors de la création du repertoire\n");
@@ -132,8 +133,8 @@ void creation_repertoire(char fichier[],int connfd){
 }
 
 void remove_file(char fichier[],int connfd){
-    char message[TAILLE_BUFFER];
-    char buf[TAILLE_BUFFER];
+    char message[MAXBUF];
+    char buf[MAXBUF];
     nom_fichier(fichier,buf);
     if(remove(buf)==0){
         strcpy(message,"Fichier supprimé\n");
@@ -144,9 +145,9 @@ void remove_file(char fichier[],int connfd){
         Rio_writen(connfd,message,strlen(message));
     }
 }
-void change_directory(int connfd,char fichier[TAILLE_BUFFER]){
-    char nom[TAILLE_BUFFER];
-    char message[TAILLE_BUFFER];
+void change_directory(int connfd,char fichier[MAXBUF]){
+    char nom[MAXBUF];
+    char message[MAXBUF];
     nom_fichier(fichier,nom);
     if (chdir(nom) == 0){
         strcpy(message,"ok\n");
@@ -157,7 +158,7 @@ void change_directory(int connfd,char fichier[TAILLE_BUFFER]){
 int remove_rec(char fichier[],int connfd){
     int n=0;
     struct dirent *dir;
-    char buf[TAILLE_BUFFER];
+    char buf[MAXBUF];
     DIR *d = opendir(fichier);
     chdir(fichier);
     if (d){
@@ -182,7 +183,7 @@ int remove_rec(char fichier[],int connfd){
 }
 
 void remove_folder(char fichier[],int connfd){
-    char message[TAILLE_BUFFER];
+    char message[MAXBUF];
     if(remove_rec(fichier,connfd)==0){
         strcpy(message,"Le répertoir a été supprimé\n");
         Rio_writen(connfd,message,strlen(message));
@@ -193,9 +194,9 @@ void remove_folder(char fichier[],int connfd){
     }
 }
 void chemin(int connfd){
-    char cwd[TAILLE_BUFFER];
+    char cwd[MAXBUF];
     getcwd(cwd, sizeof(cwd));
-    Rio_writen(connfd,cwd,TAILLE_BUFFER);
+    Rio_writen(connfd,cwd,strlen(cwd));
 }
 
 
@@ -212,25 +213,32 @@ int demande_client(int connfd)
     while(1){
         if ((n = Rio_readnb(&rio, buf, TAILLE_BUFFER)) != 0) {
 
+          
             decoupe(commande,fichier,buf);
             if(!strncmp(commande,"get",3)){
                 transfere_fichier(fichier,connfd);
             }
+
             else if(!strncmp(commande,"cat",3)){
                 lecture_fichier(fichier,connfd);
             }
+
             else if(!strncmp(buf,"ls",2)){
                 affiche_rep(connfd);
-             }
+            }
+
             else if(!strncmp(commande,"put",3)){
                 recup_fichier(fichier,connfd,rio);
             }
+
             else if(!strncmp(commande,"mkdir",5)){
                 creation_repertoire(fichier,connfd);
             }
+
             else if(!strncmp(commande,"cd",2)){
                 change_directory(connfd,fichier);
             }
+
             else if(!strncmp(commande,"rm",2)){
                 remove_file(fichier,connfd);
             }
@@ -238,17 +246,16 @@ int demande_client(int connfd)
             else if(!strncmp(commande,"rm -r",5)){
                 remove_folder(fichier,connfd);
             }
+
             else if(!strncmp(commande,"pwd",3)){
                 chemin(connfd);
             }
 
             else if(!strncmp(commande,"bye",3)){
                 return 1;
-            }
-
-            return 0;
-            
+            }            
         }
+        return 0;
     }
     return 0;
 

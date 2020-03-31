@@ -40,31 +40,29 @@ int main(int argc, char **argv)
 
     listenfd = Open_listenfd(port);
     Signal(SIGINT,handler);
-                         pid=fork();
+    pid=fork();
 
-     while (1){
-     for (int i=0;i<NPROC;i++){
+    while (1){
+        for (int i=0;i<NPROC;i++){
 
             if (pid==0){
                 connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
                 getsockname(connfd, (SA *) &clientaddr, &clientlen);
 
                 printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
-            /* determine the name of the client */
+                /* determine the name of the client */
                 Getnameinfo((SA *) &clientaddr, clientlen,client_hostname, MAX_NAME_LEN, 0, 0, 0);
 
                 /* determine the textual representation of the client's IP address */
                 Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,INET_ADDRSTRLEN);
 
-                printf("server connected to %s (%s)\n", client_hostname,
-                client_ip_string);
+                printf("server connected to %s (%s)\n", client_hostname,client_ip_string);
 
-            demande_client(connfd);
-            Close(connfd);
+                demande_client(connfd);
+                Close(connfd);
             }
-     }    
-
-     }
+        }    
+    }
 
     exit(0);
 }
