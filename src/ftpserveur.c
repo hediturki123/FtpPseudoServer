@@ -11,11 +11,6 @@ pid_t nb_fils[NPROC];
 int demande_client(int connfd);
 
 
-
-/* 
- * Note that this code only works with IPv4 addresses
- * (IPv6 is not supported)
- */
 void handler(int sig){
     for(int i=0;i<NPROC;i++){
         Kill(nb_fils[i],SIGKILL);
@@ -44,37 +39,31 @@ int main(int argc, char **argv)
     clientlen = (socklen_t)sizeof(clientaddr);
 
     listenfd = Open_listenfd(port);
+    Signal(SIGINT,handler);
+                         pid=fork();
+
      while (1){
      for (int i=0;i<NPROC;i++){
 
-            pid=fork();
             if (pid==0){
-                printf("aaaaaaa\n");
                 connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
                 getsockname(connfd, (SA *) &clientaddr, &clientlen);
-                                printf("aaaaaaa\n");
 
                 printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
             /* determine the name of the client */
-                Getnameinfo((SA *) &clientaddr, clientlen,
-                            client_hostname, MAX_NAME_LEN, 0, 0, 0);
+                Getnameinfo((SA *) &clientaddr, clientlen,client_hostname, MAX_NAME_LEN, 0, 0, 0);
 
                 /* determine the textual representation of the client's IP address */
-                Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,
-                        INET_ADDRSTRLEN);
+                Inet_ntop(AF_INET, &clientaddr.sin_addr, client_ip_string,INET_ADDRSTRLEN);
 
                 printf("server connected to %s (%s)\n", client_hostname,
-                    client_ip_string);
+                client_ip_string);
 
             demande_client(connfd);
-                //Rio_readn(connfd,)
             Close(connfd);
-        }
+            }
      }    
-            
-        if(waitpid(pid,NULL,0)==-1){
-                printf("error\n");
-        }
+
      }
 
     exit(0);
