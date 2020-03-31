@@ -44,9 +44,9 @@ int rempplit_fichier(rio_t rio,char fichier[]){
     char buf[MAXBUF];
     fd=open(fichier,O_CREAT | O_WRONLY,0666);
     while((n=Rio_readnb(&rio, &buf, TAILLE_BUFFER)) > 0){
-    printf("n = %ld\n", n);
-    somme += n;
-    write(fd,buf,n);
+        printf("n = %ld\n", n);
+        somme += n;
+        write(fd,buf,n);
     }
     close(fd);
     return somme;
@@ -137,13 +137,14 @@ int main(int argc, char **argv)
             debut=clock();
             if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
                 rm_bsn(fichier);
-                printf("Nom du fichier en réception : %s\n",fichier);        
+                printf("Nom du fichier en réception : %s\n",fichier);
                 somme=rempplit_fichier(rio,fichier);
+                printf("aaaa\n");
                 Rio_writen(clientfd,buf,somme);
+                printf("bbb\n");
                 fin=clock();
                 printf("Transfer successfully complete.\n");
                 stat_transfere(debut,fin,somme);
-                //exit(0);
             }
         }
         else if(!strcmp(cmd,"put")){
@@ -162,12 +163,15 @@ int main(int argc, char **argv)
         }
         else if(!strcmp(cmd,"ls")){
             int n;
-            Rio_writen(clientfd,buf,strlen(buf));
-            memset(buf,0,MAXBUF);
-            while((n =  Rio_readlineb(&rio,&buf,MAXBUF)) >0){  
-               buf[n-1] = ' ';
+            Rio_writen(clientfd,buf,strlen(buf)); 
+            if((n =Rio_readlineb(&rio,&buf,MAXBUF) )!= 0){               
+               //Rio_readlineb(&rio,&buf,MAXBUF);
                printf("%s",buf);
+
+               fflush(stdout);
             }
+            buf[strlen(buf)] = '\n';
+            //printf("%s", buf);
         }
         else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
         else if(!strcmp(cmd,"rm")){supp_fich(rio,clientfd,buf);}
@@ -192,7 +196,7 @@ int main(int argc, char **argv)
             Rio_writen(clientfd,buf,strlen(buf));
             memset(buf,0,MAXBUF);
             Rio_readlineb(&rio,&buf,MAXLINE);
-            printf("%s\n",buf);
+            printf("%s",buf);
         }
         else { /* the server has prematurely closed the connection */
             printf("entrez une commande valide!\n");
@@ -200,6 +204,8 @@ int main(int argc, char **argv)
 
         }
     }
+    memset(cmd,0,MAXBUF);
+    memset(buf,0,MAXBUF);
     }
     Close(clientfd);
     exit(0);

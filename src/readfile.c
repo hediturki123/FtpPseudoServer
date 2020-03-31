@@ -42,6 +42,7 @@ void transfere_fichier(char fichier[],int connfd){
        
         while((n=Rio_readn(fd,buf,TAILLE_BUFFER))!=0 ){
             Rio_writen(connfd,buf,n); 
+            printf("buf = %s", buf);
             printf("taille du buffer = %d\n",n);
             nbre_de_paquets++;
             //printf("n = %d, taille_buffer = %d\n", n,TAILLE_BUFFER);
@@ -110,14 +111,14 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
             if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
             else {
                 strcpy(nom,dir->d_name);
-                //strcat(nom,dir->d_name);
-                strcat(nom, "\n");
-                                                        
+                strcat(nom, " ");
                 Rio_writen(connfd,nom,strlen(nom));
-
                 printf("nom = %s", nom);
             }
         }
+        strcat(nom, "\n");
+        Rio_writen(connfd,nom,strlen(nom));
+        printf("termine!");
         closedir(d);
     }
 }
@@ -154,9 +155,9 @@ void change_directory(int connfd,char fichier[MAXBUF]){
     char message[MAXBUF];
     nom_fichier(fichier,nom);
     if (chdir(nom) == 0){
-        strcpy(message,"ok\n");
+        strcpy(message,"Aucun fichier dans ce repertoire\n");
         Rio_writen(connfd,message,strlen(message));
-    }
+    } 
 }
 
 int remove_rec(char fichier[],int connfd){
