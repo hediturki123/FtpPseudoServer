@@ -163,6 +163,7 @@ int main(int argc, char **argv)
                 Rio_writen(clientfd,buf,TAILLE_BUFFER);
                 Rio_readnb(&rio,&buf,TAILLE_BUFFER);
                 printf("%s\n",buf);
+                fflush(stdout);
 
             }
             else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
