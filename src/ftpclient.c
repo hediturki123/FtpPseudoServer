@@ -77,11 +77,11 @@ void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
     close(fd);
 }
 void create_mkdir(rio_t rio,int clientfd,char buf[]){
-    Rio_writen(clientfd, buf, MAXBUF);
+    Rio_writen(clientfd, buf, strlen(buf));
     Rio_readlineb(&rio,buf,MAXBUF);
     printf("%s",buf);
-
 }
+
 void supp_fich(rio_t rio,int clientfd,char buf[]){
     Rio_writen(clientfd, buf, MAXBUF);
     memset(buf,0,MAXBUF);
@@ -124,9 +124,7 @@ int main(int argc, char **argv)
     getpeername(clientfd, (SA *) &clientaddr, &clientlen);
     printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
     Rio_readinitb(&rio, clientfd);
-    
     while(1){
-    
     printf("ftp> ");
     int somme = 0;
 
@@ -163,9 +161,8 @@ int main(int argc, char **argv)
         }
         else if(!strcmp(cmd,"ls")){
             int n;
-            Rio_writen(clientfd,buf,strlen(buf)); 
+            Rio_writen(clientfd,buf,strlen(buf));
             if((n =Rio_readlineb(&rio,&buf,MAXBUF) )!= 0){               
-               //Rio_readlineb(&rio,&buf,MAXBUF);
                printf("%s",buf);
 
                fflush(stdout);
@@ -187,7 +184,6 @@ int main(int argc, char **argv)
         }
         else if(!strcmp(cmd,"rm -r")){
             Rio_writen(clientfd, buf, strlen(buf));
-            memset(buf,0,MAXBUF);
             while(Rio_readnb(&rio,&buf,MAXLINE)>0){
             printf("%s",buf);
             }
@@ -203,9 +199,9 @@ int main(int argc, char **argv)
             exit(0);
 
         }
-    }
     memset(cmd,0,MAXBUF);
     memset(buf,0,MAXBUF);
+    }
     }
     Close(clientfd);
     exit(0);

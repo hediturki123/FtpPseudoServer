@@ -116,7 +116,7 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
                 printf("nom = %s", nom);
             }
         }
-        strcat(nom, "\n");
+        strcpy(nom, "\n");
         Rio_writen(connfd,nom,strlen(nom));
         printf("termine!");
         closedir(d);
@@ -127,14 +127,15 @@ void creation_repertoire(char fichier[],int connfd){
     char message[MAXBUF];
     char buf[MAXBUF];
     nom_fichier(fichier,buf);
-    if(mkdir(buf,S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH)<0){
+    if(mkdir(buf,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)<0){
         strcpy(message,"Erreur lors de la création du repertoire\n");
         Rio_writen(connfd,message,strlen(message));
     }
     else{
-        strcpy(message,"Repertoir créé\n");
+        strcpy(message,"RepertoireCréé\n");
         Rio_writen(connfd,message,strlen(message));
     }
+    
 }
 
 void remove_file(char fichier[],int connfd){
@@ -154,10 +155,12 @@ void change_directory(int connfd,char fichier[MAXBUF]){
     char nom[MAXBUF];
     char message[MAXBUF];
     nom_fichier(fichier,nom);
-    if (chdir(nom) == 0){
+    if (chdir(nom) != 0){
         strcpy(message,"Aucun fichier dans ce repertoire\n");
-        Rio_writen(connfd,message,strlen(message));
-    } 
+    } else {
+        strcpy(message,"ok\n");
+    }
+    Rio_writen(connfd,message,strlen(message));
 }
 
 int remove_rec(char fichier[],int connfd){
@@ -168,7 +171,6 @@ int remove_rec(char fichier[],int connfd){
     chdir(fichier);
     if (d){
         while ((dir = readdir(d)) != NULL){
-            //printf("%s\n", dir->d_name);
             if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
             else {
                 if (dir->d_type == DT_DIR){
@@ -190,11 +192,11 @@ int remove_rec(char fichier[],int connfd){
 void remove_folder(char fichier[],int connfd){
     char message[MAXBUF];
     if(remove_rec(fichier,connfd)==0){
-        strcpy(message,"Le répertoir a été supprimé\n");
+        strcpy(message,"Le répertoire a été supprimé\n");
         Rio_writen(connfd,message,strlen(message));
     }
     else{
-        strcpy(message,"Le répertoir n'a pas pu être supprimé\n");
+        strcpy(message,"Le répertoire n'a pas pu être supprimé\n");
         Rio_writen(connfd,message,strlen(message));
     }
     exit(0);
@@ -231,7 +233,9 @@ int demande_client(int connfd)
         else if(!strcmp(commande,"pwd")){chemin(connfd);}
         else if(!strcmp(commande,"bye")){return 1;}
         }
-
+    memset(buf,0,MAXLINE);
+    memset(fichier,0,MAXLINE);
+    memset(commande,0,10);
     }
     return 0;
 }
