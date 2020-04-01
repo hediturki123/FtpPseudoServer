@@ -89,12 +89,33 @@ void supp_fich(rio_t rio,int clientfd,char buf[]){
     }
 }
 
+int security(rio_t rio,int clientfd){
+    char bool[10]="1";
+    char login[MAXBUF];
+    char mdp[MAXBUF];
+    Fputs("Saisir votre login :\n",stdout);
+    //printf("Saisir votre login :\n");
+    Fgets(login,MAXBUF,stdin);
+    Rio_writen(clientfd,login,strlen(login));
+    Fputs("Saisir votre mot de passe :\n",stdout);
+    while(bool[0]=='1' && (Fgets(mdp,MAXBUF,stdin)!=NULL)){
+        Rio_writen(clientfd,mdp,strlen(mdp));
+        Rio_readlineb(&rio,bool,10);
+        memset(mdp,0,MAXBUF);
+        if(bool[0]=='1'){Fputs("Saisir votre mot de passe :\n",stdout);}
+    }
+    bool[strlen(bool)-1]='\0';
+    if(!strcmp(bool,"0")){return 1;}
+    else{return 0;}
+
+}
 
 int main(int argc, char **argv)
 {
     int clientfd, port;
     char *host, fichier[MAXBUF],buf[MAXBUF],cmd[10];
     rio_t rio;
+    int autorisation;
     clock_t debut,fin;
     struct sockaddr_in clientaddr;
     socklen_t clientlen = sizeof(clientaddr);
@@ -126,7 +147,12 @@ int main(int argc, char **argv)
     getpeername(clientfd, (SA *) &clientaddr, &clientlen);
     printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
     Rio_readinitb(&rio, clientfd);
-    while(1){
+    #ifdef SECU
+        autorisation=security(rio,clientfd);
+    #else
+        autorisation=1;
+    #endif
+    while(1 && autorisation){
     printf("ftp> ");
     int somme = 0;
 

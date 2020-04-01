@@ -6,6 +6,7 @@
 
 #define MAX_NAME_LEN 256
 #define NPROC 2
+#define ESSAI_MAX 3
 pid_t nb_fils[NPROC];
 
 int demande_client(int connfd);
@@ -24,11 +25,38 @@ void handler(int sig){
 }
 
 
-
+int secutrity_serv(int connfd){
+    FILE * f=fopen("log","w+");
+    int nb_essai=1;
+    char login_USR[MAXBUF];
+    char mdp_USR[MAXBUF];
+    rio_t rio;
+    Rio_readinitb(&rio, connfd);
+    Rio_readlineb(&rio,login_USR,MAXBUF);
+    while(nb_essai<ESSAI_MAX){
+        Rio_readlineb(&rio,mdp_USR,MAXLINE);
+        mdp_USR[strlen(mdp_USR)-1]='\0';
+        fprintf(f,"%s",mdp_USR);
+        if(strcmp(mdp_USR,"root")==0){
+            Rio_writen(connfd,"0\n",strlen("0\n"));
+            return 1;
+        }
+        else if(nb_essai<ESSAI_MAX){
+            Rio_writen(connfd,"1\n",strlen("1\n"));
+            Fputs("envoi ok\n",stdout);
+        }
+        nb_essai++;
+        memset(mdp_USR,0,MAXBUF);
+    }
+    fclose(f);
+    Rio_writen(connfd,"2\n",strlen("2\n"));
+    return 0;
+}
 int main(int argc, char **argv)
 {
     int listenfd, connfd, port;
     socklen_t clientlen;
+    int autorisation;
     struct sockaddr_in clientaddr;
     char client_ip_string[INET_ADDRSTRLEN];
     char client_hostname[MAX_NAME_LEN];
@@ -65,8 +93,12 @@ int main(int argc, char **argv)
                 
                 printf("server connected to %s (%s)\n", client_hostname,
                     client_ip_string);
-
-                demande_client(connfd);
+                #ifdef SECU
+                    autorisation=secutrity_serv(connfd);
+                #else
+                    autorisation=1;
+                #endif
+                if(autorisation){demande_client(connfd);}
                 Close(connfd);
             
             }
