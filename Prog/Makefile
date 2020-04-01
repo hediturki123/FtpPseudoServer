@@ -20,6 +20,9 @@ CFLAGS = -Wall -Werror -I $(HEADERDIR)
 ifdef DEBUG
 CFLAGS+= -g -DDEBUG=$(DEBUG)
 endif
+ifdef SECU
+CFLAGS += -DSECU=1
+endif
 LDFLAGS =
 
 LIBS += -lpthread
