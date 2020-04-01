@@ -168,7 +168,6 @@ int main(int argc, char **argv)
                fflush(stdout);
             }
             buf[strlen(buf)] = '\n';
-            //printf("%s", buf);
         }
         else if(!strcmp(cmd,"mkdir")){create_mkdir(rio,clientfd,buf);}
         else if(!strcmp(cmd,"rm")){supp_fich(rio,clientfd,buf);}
@@ -184,8 +183,8 @@ int main(int argc, char **argv)
         }
         else if(!strcmp(cmd,"rm -r")){
             Rio_writen(clientfd, buf, strlen(buf));
-            while(Rio_readnb(&rio,&buf,MAXLINE)>0){
-            printf("%s",buf);
+            if(Rio_readlineb(&rio,&buf,MAXLINE)>0){
+                printf("%s",buf);
             }
         }
         else if (!strcmp(cmd,"pwd")){
