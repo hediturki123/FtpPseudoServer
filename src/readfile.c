@@ -139,7 +139,7 @@ void remove_file(char fichier[],int connfd){
     if(remove(buf)==0){
         strcpy(message,"Fichier supprimé\n");
     } else {
-        strcpy(message,"Fichier supprimé\n");
+        strcpy(message,"Erreur\n");
     }
     Rio_writen(connfd,message,strlen(message));
 }
