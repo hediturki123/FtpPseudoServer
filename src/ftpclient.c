@@ -3,7 +3,7 @@
  */
 #include "csapp.h"
 #include <time.h>
-#define TAILLE_BUFFER 256
+#define TAILLE_BUFFER 10
 
 void get_cmd(char buf[],char cmd[]){
     int i;
@@ -22,12 +22,12 @@ void get_fichier(char buf[],char fichier[]){
     }
     fichier[j]='\0';
 }
-
+/*
 void rm_bsn(char fichier[]){
     int i;
     for(i=0;fichier[i]!='\n' && fichier[i]!='\0';i++){}
     fichier[i]='\0';
-}
+}*/
 
 void stat_transfere(clock_t debut,clock_t fin,int somme){
     double temps=(double)(fin-debut)*1000/CLOCKS_PER_SEC;
@@ -41,12 +41,14 @@ int rempplit_fichier(rio_t rio,char fichier[]){
     int somme=0;
     int fd;
     ssize_t n;
-    char buf[MAXBUF];
+    char buf[TAILLE_BUFFER];
     fd=open(fichier,O_CREAT | O_WRONLY,0666);
-    while((n=Rio_readnb(&rio, &buf, TAILLE_BUFFER)) > 0){
+    while((n=Rio_readnb(&rio, &buf, strlen(buf))) > 0){
         printf("n = %ld\n", n);
         somme += n;
-        write(fd,buf,n);
+        Fputs(buf,stdout);
+        Rio_writen(fd,buf,n);
+        memset(buf,0,TAILLE_BUFFER);
     }
     close(fd);
     return somme;
@@ -55,7 +57,8 @@ int rempplit_fichier(rio_t rio,char fichier[]){
 void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
     int fd,n;
     int donnee[TAILLE_BUFFER];
-    rm_bsn(fichier);
+    fichier[strlen(fichier)-1]='\0';
+    //rm_bsn(fichier);
     fd=open(fichier,O_RDONLY);
     if(fd<0){
         printf("Erreur de fichier\n");
@@ -162,7 +165,7 @@ int main(int argc, char **argv)
             Rio_writen(clientfd, buf, strlen(buf));
             debut=clock();
             if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
-                rm_bsn(fichier);
+                fichier[strlen(fichier)-1]='\0';
                 printf("Nom du fichier en réception : %s\n",fichier);
                 somme=rempplit_fichier(rio,fichier);
                 printf("aaaa\n");

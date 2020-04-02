@@ -2,7 +2,7 @@
 #include <dirent.h>
 #define _GNU_SOURCE
 
-#define TAILLE_BUFFER 256
+#define TAILLE_BUFFER 10
 void nom_fichier(char *buf,char *nom){
     int i;
     for(i=0;buf[i]!='\n' && buf[i]!='\0';i++){
@@ -23,12 +23,14 @@ void lecture_fichier(char buf[],int connfd){
     while((n=Read(fd,&Rbuf,MAXLINE))!=0){
         Rio_writen(connfd, Rbuf, n);
     }
+    Close(fd);
 }
 
 void transfere_fichier(char fichier[],int connfd){
     int fd,n;
     char buf[MAXLINE];
     char message[MAXLINE];
+    rio_t rio;
     fd=open(fichier,O_RDONLY,0);
     if(fd<0){
         strcpy(message,"Erreur de fichier\n");
@@ -38,11 +40,12 @@ void transfere_fichier(char fichier[],int connfd){
         int nbre_de_paquets = 0;
         strcat(fichier,"\n");
         Rio_writen(connfd,fichier,strlen(fichier));
-       
-        while((n=Rio_readn(fd,buf,TAILLE_BUFFER))!=0 ){
+        Rio_readinitb(&rio,fd);
+        while((n=Rio_readnb(&rio,buf,TAILLE_BUFFER))>0 ){
             Rio_writen(connfd,buf,n); 
-            //printf("buf = %s", buf);
-            printf("taille du buffer = %d\n",n);
+            printf("\ntaille du buffer = %d\n",n);
+            Fputs(buf,stdout);
+            memset(buf,0,TAILLE_BUFFER);
             nbre_de_paquets++;
             //printf("n = %d, taille_buffer = %d\n", n,TAILLE_BUFFER);
 
