@@ -30,6 +30,7 @@ void transfere_fichier(char fichier[],int connfd){
     int fd,n;
     char buf[MAXLINE];
     char message[MAXLINE];
+    char taille[4];
     rio_t rio;
     fd=open(fichier,O_RDONLY,0);
     if(fd<0){
@@ -42,6 +43,8 @@ void transfere_fichier(char fichier[],int connfd){
         Rio_writen(connfd,fichier,strlen(fichier));
         Rio_readinitb(&rio,fd);
         while((n=Rio_readnb(&rio,buf,TAILLE_BUFFER))>0 ){
+            sprintf(taille,"%d",n);
+            Rio_writen(connfd,taille,4);
             Rio_writen(connfd,buf,n); 
             printf("\ntaille du buffer = %d\n",n);
             Fputs(buf,stdout);
@@ -50,6 +53,7 @@ void transfere_fichier(char fichier[],int connfd){
             //printf("n = %d, taille_buffer = %d\n", n,TAILLE_BUFFER);
 
         }
+        Rio_writen(connfd,"0",4);
         printf("nbre de paquets = %d",nbre_de_paquets);
         Close(fd);
     }

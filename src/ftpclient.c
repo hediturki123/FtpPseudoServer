@@ -39,11 +39,13 @@ void stat_transfere(clock_t debut,clock_t fin,int somme){
 
 int rempplit_fichier(rio_t rio,char fichier[]){
     int somme=0;
-    int fd;
+    int fd,taille;
     ssize_t n;
     char buf[TAILLE_BUFFER];
+    char taille_buf[4];
     fd=open(fichier,O_CREAT | O_WRONLY,0666);
-    while((n=Rio_readnb(&rio, &buf, strlen(buf))) > 0){
+    while( (Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille=atoi(taille_buf))!=0) ){
+        n=Rio_readnb(&rio, buf, taille);
         printf("n = %ld\n", n);
         somme += n;
         Fputs(buf,stdout);
@@ -169,7 +171,7 @@ int main(int argc, char **argv)
                 printf("Nom du fichier en réception : %s\n",fichier);
                 somme=rempplit_fichier(rio,fichier);
                 printf("aaaa\n");
-                Rio_writen(clientfd,buf,somme);
+                //Rio_writen(clientfd,buf,somme);
                 printf("bbb\n");
                 fin=clock();
                 printf("Transfer successfully complete.\n");
