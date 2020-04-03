@@ -24,52 +24,63 @@ void handler(int sig){
     exit(0);
 }
 
-void mdp_login(char log[],char mdp_file[]){
-    char log_fich[MAXBUF];
-    char buf[1];
+void decoupe_secu(char buf[],char log[],char mdp[]){
     int space=0;
-    strcat(log_fich,".");
-    int fd=open(".security",O_RDONLY);
-    Fputs("dans la fonciton",stdout);
-    while(strcmp(log,log_fich)!=0){
-        while(buf[0]!='\n'){
-            Read(fd,buf,strlen(buf));
-            if(strcmp(buf," ")==0){space=1;}
-            if(space){
-                strcat(mdp_file,buf);
-            }
-            else{
-                strcat(log_fich,buf);
-            }
+    int i,j;
+    for(i=0;buf[i]!='\n';i++){
+        if(buf[i]==' '){
+            log[i]='\0';
+            space=1;
+            i++;
+            j=i;
+        }
+        if(space){
+            mdp[i-j]=buf[i];
+        }
+        else{
+            log[i]=buf[i];
         }
     }
-    Close(fd);
-    Fputs(log_fich,stdout);
-    Fputs(mdp_file,stdout);
+    mdp[i-j]='\0';
 }
 
 int secutrity_serv(int connfd){
-    FILE * f=fopen("log","w+");
+    
     int nb_essai=0;
     char login_USR[MAXBUF];
     char mdp_USR[MAXBUF];
-    //char mdp_in_file[MAXBUF];
-    rio_t rio;
+    char log_fich[MAXBUF];
+    char mdp_file[MAXBUF];
+    char buf[MAXBUF];
+    rio_t rio,fich;
+    int fd=open(".security",O_RDONLY);
     Rio_readinitb(&rio, connfd);
     Rio_readlineb(&rio,login_USR,MAXBUF);
-    //mdp_login(login_USR,mdp_in_file);
+    Rio_readinitb(&fich,fd);
+    login_USR[strlen(login_USR)-1]='\0';
+    while((Rio_readlineb(&fich,buf,MAXBUF)!=0)){
+            //Fputs(buf,stdout);
+            decoupe_secu(buf,log_fich,mdp_file);
+            if((strcmp(login_USR,log_fich)==0)){
+                break;
+            }
+            memset(mdp_file,0,MAXBUF);
+            memset(log_fich,0,MAXBUF);
+            memset(buf,0,MAXBUF);
+        }
+    Close(fd);
+    Fputs(mdp_file,stdout);
     while(nb_essai<ESSAI_MAX){
         Rio_readlineb(&rio,mdp_USR,MAXLINE);
         mdp_USR[strlen(mdp_USR)-1]='\0';
-        fprintf(f,"%s",mdp_USR);
-        if(strcmp(mdp_USR,"root")==0){
+        
+        if(strcmp(mdp_USR,mdp_file)==0){
             Rio_writen(connfd,"0\n",strlen("0\n"));
             return 1;
         }
         else{
             if(nb_essai<ESSAI_MAX-1){
                 Rio_writen(connfd,"1\n",strlen("1\n"));
-                Fputs("envoi ok\n",stdout);
             }
             else{
                 Rio_writen(connfd,"2\n",strlen("2\n"));
@@ -79,7 +90,7 @@ int secutrity_serv(int connfd){
         nb_essai++;
         memset(mdp_USR,0,MAXBUF);
     }
-    fclose(f);
+    
     return 0;
 }
 int main(int argc, char **argv)
