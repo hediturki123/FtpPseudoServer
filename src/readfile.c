@@ -115,7 +115,7 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
     DIR *d = opendir("."); 
     if (d){
         while ((dir = readdir(d)) != NULL){
-            if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
+            if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..") || !strcmp(dir->d_name, ".security")){}
             else {
                 strcpy(nom,dir->d_name);
                 strcat(nom, " ");
