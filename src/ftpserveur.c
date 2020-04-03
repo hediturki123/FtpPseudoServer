@@ -114,16 +114,16 @@ int main(int argc, char **argv)
     clientlen = (socklen_t)sizeof(clientaddr);
 
     listenfd = Open_listenfd(port);
-    pid=fork();
 
+     for (int i=0;i<NPROC;i++){
+         if  ((pid=fork() ) != 0){
+                break;
+         }
+     }
     while (1) {
-
-        for (int i=0;i<NPROC;i++){
-
-            if (pid==0){
-                connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
-                getsockname(connfd, (SA *) &clientaddr, &clientlen);
-                printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
+        connfd = Accept(listenfd, (SA *)&clientaddr, &clientlen);
+        getsockname(connfd, (SA *) &clientaddr, &clientlen);
+        printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
             /* determine the name of the client */
                 Getnameinfo((SA *) &clientaddr, clientlen,
                             client_hostname, MAX_NAME_LEN, 0, 0, 0);
@@ -143,8 +143,8 @@ int main(int argc, char **argv)
                 Close(connfd);
             
             }
-        }
-    }
+        
+    
     exit(0);
 }
 
