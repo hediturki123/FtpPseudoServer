@@ -37,26 +37,6 @@ void stat_transfere(clock_t debut,clock_t fin,int somme){
     printf("%d bytes received in %f seconds\n(%f Kbits/sec)\n",somme,temps,kilo_bits_par_sec);
 }
 
-int rempplit_fichier(rio_t rio,char fichier[]){
-    int somme=0;
-    int fd,taille;
-    ssize_t n;
-    char buf[TAILLE_BUFFER];
-    char taille_buf[4];
-    fd=open(fichier,O_CREAT | O_WRONLY,0666);
-    while( (Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille=atoi(taille_buf))!=0) ){
-        n=Rio_readnb(&rio, buf, taille);
-        //printf("n = %ld\n", n);
-        somme += n;
-        //Fputs(buf,stdout);
-        write(fd,buf,n);
-        memset(buf,0,TAILLE_BUFFER);
-    }
-    memset(buf,0,TAILLE_BUFFER);
-    close(fd);
-    return somme;
-}
-
 void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
     int fd,n;
     int donnee[TAILLE_BUFFER];
@@ -163,30 +143,34 @@ int main(int argc, char **argv)
     int somme = 0;
 
     if (Fgets(buf, MAXLINE, stdin) != NULL) {
-        get_cmd(buf,cmd);
-        if(!strcmp(cmd,"get")){ // Code pour la commande get
+
+        get_cmd(buf, cmd);
+        if(!strcmp(cmd, "get")){ // Code pour la commande get
+            
             Rio_writen(clientfd, buf, strlen(buf));
-            debut=clock();
+            debut = clock();
+            
             if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
-                fichier[strlen(fichier)-1]='\0';
-                printf("Nom du fichier en réception : %s\n",fichier);
-                //somme=rempplit_fichier(rio,fichier);
-                int fd,taille;
+                fichier[strlen(fichier)-1] = '\0';
+                printf("Nom du fichier en réception : %s\n", fichier);
+                int fd, taille;
                 size_t n;
                 char buf[TAILLE_BUFFER];
                 char taille_buf[4];
-                fd=open(fichier,O_CREAT | O_WRONLY,0666);
-                while( (Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille=atoi(taille_buf))!=0) ){
-                    n=Rio_readnb(&rio, buf, taille);
+                fd = open(fichier, O_CREAT | O_WRONLY, 0666);
+                
+                while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                    n = Rio_readnb(&rio, buf, taille);
                     somme += n;
-                    write(fd,buf,n);
-                    memset(buf,0,TAILLE_BUFFER);
+                    write(fd, buf, n);
+                    memset(buf, 0, TAILLE_BUFFER);
                 }
-                memset(buf,0,TAILLE_BUFFER);
+
+                memset(buf, 0, TAILLE_BUFFER);
                 close(fd);
-                fin=clock();
+                fin = clock();
                 printf("Transfer successfully complete.\n");
-                stat_transfere(debut,fin,somme);
+                stat_transfere(debut, fin, somme);
             }
         }
 
