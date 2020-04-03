@@ -141,14 +141,52 @@ int main(int argc, char **argv)
     #endif
 
     while(1 && autorisation){
+       
         printf("ftp> ");
         int somme = 0;
 
         if (Fgets(buf, MAXLINE, stdin) != NULL) {
 
             get_cmd(buf, cmd);
-            if(!strcmp(cmd, "get")){ // Code pour la commande get
+            if (!strcmp(cmd, "resume")){
+                Rio_writen(clientfd, buf, strlen(buf));
+                 int flog;
+                flog = open(".log", 0666);
+                char nom_fichier[MAXBUF];
+                rio_t rio;
+                Rio_readinitb(&rio,flog);
+                Rio_readlineb(&rio,nom_fichier,MAXBUF);
+                printf("nom fichier = %s\n", nom_fichier);
+                Rio_writen(clientfd,nom_fichier,MAXBUF);
                 
+               if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
+                    fichier[strlen(fichier)-1] = '\0';
+                    printf("Nom du fichier en réception : %s\n", fichier);
+                    int fd, taille;
+                    size_t n;
+                    char buf[TAILLE_BUFFER];
+                    char taille_buf[4];
+                    fd = open(fichier, O_CREAT | O_WRONLY, 0666);
+                    
+                    while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                        n = Rio_readnb(&rio, buf, taille);
+                        somme += n;
+                        write(fd, buf, n);
+                        //memset(buf, 0, TAILLE_BUFFER);
+                    }
+                    close(fd);
+                    fin = clock();
+                    printf("Transfer successfully complete.\n");
+                    stat_transfere(debut, fin, somme);
+                    Rio_readlineb(&rio,buf,strlen(buf));
+                remove(".log");
+                //ne pas oublier de fermer et effacer le ficheir à la fin
+            }
+            }
+
+
+            if(!strcmp(cmd, "get")){ // Code pour la commande get
+
                 Rio_writen(clientfd, buf, strlen(buf));
                 debut = clock();
                 
@@ -165,14 +203,47 @@ int main(int argc, char **argv)
                         n = Rio_readnb(&rio, buf, taille);
                         somme += n;
                         write(fd, buf, n);
-                        memset(buf, 0, TAILLE_BUFFER);
+                        //memset(buf, 0, TAILLE_BUFFER);
                     }
-
-                    memset(buf, 0, TAILLE_BUFFER);
+                    int nbre_de_paquets_recus;
+                    if (n == TAILLE_BUFFER){
+                        nbre_de_paquets_recus = (somme/TAILLE_BUFFER);
+                    } else { 
+                        nbre_de_paquets_recus = (somme/TAILLE_BUFFER)+1;
+                    }
+                    printf("n = %d\n", nbre_de_paquets_recus);
+                    
+                    //memset(buf, 0, TAILLE_BUFFER);
                     close(fd);
                     fin = clock();
                     printf("Transfer successfully complete.\n");
                     stat_transfere(debut, fin, somme);
+                    Rio_readlineb(&rio,buf,strlen(buf));
+                    printf("buf = %s\n", buf);
+                    //memset(buf, 0, TAILLE_BUFFER);
+                    int nbuf = atoi(buf)-10;
+                    printf("nbre_de_paquets_recus : %d\nnbuf : %d\n", nbre_de_paquets_recus,nbuf);
+                    if (nbre_de_paquets_recus == nbuf){
+                        printf("transfert realisé à 100 pourcents\n");
+                        //Rio_writen(clientfd,"ok",strlen("ok"));
+                    } else {
+                        //reprendre la lecture a un certain point du fichier!!!
+                        //Rio_writen(clientfd,"notok",strlen("notok"));
+                        //crash il faut reprendre a la prochaine connexion
+                        //creer un fichier log dans lequel il y le nbre de paquets a telecharger
+                        
+                        //file = fopen(".log", "aw");
+                        int flog = open(".log",O_CREAT | O_WRONLY, 0666);
+                        int arret_buf = nbuf;
+                        char abuff[MAXLINE];
+                        sprintf(abuff, "%d", arret_buf);
+                        strcat(fichier, " ");
+                        write(flog, fichier, strlen(fichier));
+                        write(flog, abuff, strlen(abuff));
+                        //Fputs(fichier,flog);//on met le nom du fichier qu'on a lu et on saute en ligne 
+                        //Fputs(abuff,flog);//pour ajouter ensuite le nombre de paquets recus
+                        close(flog);
+                    }
                 }
             }
 
@@ -240,7 +311,7 @@ int main(int argc, char **argv)
 
             else { /* the server has prematurely closed the connection */
                 printf("entrez une commande valide!\n");
-                exit(0);
+               // exit(0);
 
             }
 
