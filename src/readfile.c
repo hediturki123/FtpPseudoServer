@@ -26,38 +26,37 @@ void lecture_fichier(char buf[],int connfd){
     Close(fd);
 }
 
-void transfere_fichier(char fichier[],int connfd){
+void transfere_fichier(char fichier[], int connfd){
     int fd;
     size_t n;
     char buf[MAXLINE];
     char message[MAXLINE];
     char taille[4];
     rio_t rio;
-    fd=open(fichier,O_RDONLY,0);
-    if(fd<0){
-        strcpy(message,"Erreur de fichier\n");
-        Rio_writen(connfd,message,strlen(message));
-    }
-    else{
-        int nbre_de_paquets = 0;
-        strcat(fichier,"\n");
-        Rio_writen(connfd,fichier,strlen(fichier));
-        Rio_readinitb(&rio,fd);
-        while((n=Rio_readnb(&rio,buf,TAILLE_BUFFER))>0){
-            sprintf(taille,"%ld",n);
-            Rio_writen(connfd,taille,4);
-            Rio_writen(connfd,buf,n); 
-            //("\ntaille du buffer = %d\n",n);
-            //Fputs(buf,stdout);
-            memset(buf,0,sizeof(buf));
-            memset(taille,0,sizeof(taille));
-            nbre_de_paquets++;
-            //printf("n = %d, taille_buffer = %d\n", n,TAILLE_BUFFER);
+    fd = open(fichier, O_RDONLY, 0);
+    if(fd < 0){
+        strcpy(message, "Erreur de fichier\n");
+        Rio_writen(connfd, message, strlen(message));
+    
+    } else {
 
+        int nbre_de_paquets = 0;
+        strcat(fichier, "\n");
+        Rio_writen(connfd, fichier, strlen(fichier));
+        Rio_readinitb(&rio, fd);
+
+        while((n = Rio_readnb(&rio, buf, TAILLE_BUFFER)) > 0){
+            sprintf(taille, "%ld", n);
+            Rio_writen(connfd, taille, 4);
+            Rio_writen(connfd, buf, n); 
+            memset(buf, 0, sizeof(buf));
+            memset(taille, 0, sizeof(taille));
+            nbre_de_paquets++;
         }
-        Rio_writen(connfd,"0",4);
-        memset(buf,0,TAILLE_BUFFER);
-        printf("nbre de paquets = %d",nbre_de_paquets);
+
+        Rio_writen(connfd, "0", 4);
+        memset(buf, 0, TAILLE_BUFFER);
+        printf("nbre de paquets = %d", nbre_de_paquets);
         Close(fd);
     }
 }
@@ -166,25 +165,29 @@ void change_directory(int connfd,char fichier[MAXBUF]){
     Rio_writen(connfd,message,strlen(message));
 }
 
-int remove_rec(char fichier[],int connfd){
-    int n=0;
+int remove_rec(char fichier[], int connfd){
+    int n = 0;
     struct dirent *dir;
     char buf[MAXBUF];
     DIR *d = opendir(fichier);
     chdir(fichier);
+    
     if (d){
         while ((dir = readdir(d)) != NULL){
-            if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..")){}
+            
+            if (!strcmp(dir->d_name, ".") || !strcmp(dir->d_name, "..")){}
+            
             else {
                 if (dir->d_type == DT_DIR){
-                    n+=remove_rec(dir->d_name,connfd);
-                }
-                else{
-                    strcpy(buf,dir->d_name);
-                    if(remove(buf)!=0){n++;}
+                    n += remove_rec(dir->d_name, connfd);
+                
+                } else {
+                    strcpy(buf, dir->d_name);
+                    if(remove(buf) != 0){n++;}
                 }
             }
         }
+
         chdir("..");
         closedir(d);
         rmdir(fichier);
@@ -196,19 +199,20 @@ void remove_folder(char fichier[],int connfd){
     char message[MAXBUF];
     if(remove_rec(fichier,connfd)==0){
         strcpy(message,"Le répertoire a été supprimé\n");
-    }
-    else{
+    
+    } else {
         strcpy(message,"Le répertoire n'a pas pu être supprimé\n");
+    
     }
     Rio_writen(connfd,message,strlen(message));
 }
+
 void chemin(int connfd){
     char cwd[MAXBUF];
     getcwd(cwd, sizeof(cwd));
     cwd[strlen(cwd)]='\n';
     Rio_writen(connfd,cwd,strlen(cwd));
 }
-
 
 
 int demande_client(int connfd)
@@ -222,17 +226,46 @@ int demande_client(int connfd)
     Rio_readinitb(&rio, connfd);
     while(1){
         if ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
-        decoupe(commande,fichier,buf);
-        if(!strcmp(commande,"get")){transfere_fichier(fichier,connfd);}
-        else if(!strcmp(commande,"cat")){lecture_fichier(fichier,connfd);}
-        else if(!strcmp(commande,"ls")){affiche_rep(connfd,fichier);}
-        else if(!strcmp(commande,"put")){recup_fichier(fichier,connfd,rio);}
-        else if(!strcmp(commande,"mkdir")){creation_repertoire(fichier,connfd);}
-        else if(!strcmp(commande,"cd")){change_directory(connfd,fichier);}
-        else if(!strcmp(commande,"rm")){remove_file(fichier,connfd);}
-        else if(!strcmp(commande,"rm -r")){remove_folder(fichier,connfd);}
-        else if(!strcmp(commande,"pwd")){chemin(connfd);}
-        else if(!strcmp(commande,"bye")){return 1;}
+            decoupe(commande,fichier,buf);
+            if(!strcmp(commande,"get")){
+                transfere_fichier(fichier,connfd);
+            }
+
+            else if(!strcmp(commande,"cat")){
+                lecture_fichier(fichier,connfd);
+            }
+            
+            else if(!strcmp(commande,"ls")){
+                affiche_rep(connfd,fichier);
+            }
+
+            else if(!strcmp(commande,"put")){
+                recup_fichier(fichier,connfd,rio);
+            }
+
+            else if(!strcmp(commande,"mkdir")){
+                creation_repertoire(fichier,connfd);
+            }
+
+            else if(!strcmp(commande,"cd")){
+                change_directory(connfd,fichier);
+            }
+
+            else if(!strcmp(commande,"rm")){
+                remove_file(fichier,connfd);
+            }
+
+            else if(!strcmp(commande,"rm -r")){
+                remove_folder(fichier,connfd);
+            }
+
+            else if(!strcmp(commande,"pwd")){
+                chemin(connfd);
+            }
+
+            else if(!strcmp(commande,"bye")){
+                return 1;
+            }
         }
     memset(buf,0,MAXLINE);
     memset(fichier,0,MAXLINE);

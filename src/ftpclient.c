@@ -133,117 +133,120 @@ int main(int argc, char **argv)
     getpeername(clientfd, (SA *) &clientaddr, &clientlen);
     printf("numero de port distant : %d\n", ntohs(clientaddr.sin_port));
     Rio_readinitb(&rio, clientfd);
-    #ifdef SECU
+   
+   #ifdef SECU
         autorisation=security(rio,clientfd);
     #else
         autorisation=1;
     #endif
+
     while(1 && autorisation){
-    printf("ftp> ");
-    int somme = 0;
+        printf("ftp> ");
+        int somme = 0;
 
-    if (Fgets(buf, MAXLINE, stdin) != NULL) {
+        if (Fgets(buf, MAXLINE, stdin) != NULL) {
 
-        get_cmd(buf, cmd);
-        if(!strcmp(cmd, "get")){ // Code pour la commande get
-            
-            Rio_writen(clientfd, buf, strlen(buf));
-            debut = clock();
-            
-            if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
-                fichier[strlen(fichier)-1] = '\0';
-                printf("Nom du fichier en réception : %s\n", fichier);
-                int fd, taille;
-                size_t n;
-                char buf[TAILLE_BUFFER];
-                char taille_buf[4];
-                fd = open(fichier, O_CREAT | O_WRONLY, 0666);
+            get_cmd(buf, cmd);
+            if(!strcmp(cmd, "get")){ // Code pour la commande get
                 
-                while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
-                    n = Rio_readnb(&rio, buf, taille);
-                    somme += n;
-                    write(fd, buf, n);
+                Rio_writen(clientfd, buf, strlen(buf));
+                debut = clock();
+                
+                if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
+                    fichier[strlen(fichier)-1] = '\0';
+                    printf("Nom du fichier en réception : %s\n", fichier);
+                    int fd, taille;
+                    size_t n;
+                    char buf[TAILLE_BUFFER];
+                    char taille_buf[4];
+                    fd = open(fichier, O_CREAT | O_WRONLY, 0666);
+                    
+                    while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                        n = Rio_readnb(&rio, buf, taille);
+                        somme += n;
+                        write(fd, buf, n);
+                        memset(buf, 0, TAILLE_BUFFER);
+                    }
+
                     memset(buf, 0, TAILLE_BUFFER);
+                    close(fd);
+                    fin = clock();
+                    printf("Transfer successfully complete.\n");
+                    stat_transfere(debut, fin, somme);
                 }
-
-                memset(buf, 0, TAILLE_BUFFER);
-                close(fd);
-                fin = clock();
-                printf("Transfer successfully complete.\n");
-                stat_transfere(debut, fin, somme);
             }
-        }
 
-        else if(!strcmp(cmd,"put")){
-            get_fichier(buf,fichier);
-            printf("Début du transfère du fichier : %s",fichier);
-            envoi_fichier(rio,clientfd,fichier,buf);
-            printf("Fin du transfère\n");
+            else if(!strcmp(cmd, "put")){
+                get_fichier(buf,fichier);
+                printf("Début du transfère du fichier : %s", fichier);
+                envoi_fichier(rio, clientfd, fichier, buf);
+                printf("Fin du transfère\n");
 
-        }
-
-        else if(!strcmp(cmd,"cat")){
-            Rio_writen(clientfd, buf, strlen(buf));
-            memset(buf,0,MAXBUF);
-            while(Rio_readnb(&rio,buf,MAXBUF)){
-                Fputs(buf,stdout);
             }
-        }
 
-        else if(!strcmp(cmd,"ls")){
-            int n;
-            Rio_writen(clientfd,buf,strlen(buf));
-            if((n =Rio_readlineb(&rio,&buf,MAXBUF) )!= 0){               
-               printf("%s",buf);
-
-               fflush(stdout);
+            else if(!strcmp(cmd, "cat")){
+                Rio_writen(clientfd, buf, strlen(buf));
+                memset(buf, 0, MAXBUF);
+                while(Rio_readnb(&rio, buf, MAXBUF)){
+                    Fputs(buf, stdout);
+                }
             }
-            buf[strlen(buf)] = '\n';
-        }
 
-        else if(!strcmp(cmd,"mkdir")){
-            create_mkdir(rio,clientfd,buf);
-        }
+            else if(!strcmp(cmd, "ls")){
+                int n;
+                Rio_writen(clientfd, buf, strlen(buf));
+                if((n = Rio_readlineb(&rio,&buf, MAXBUF) ) != 0){               
+                printf("%s", buf);
 
-        else if(!strcmp(cmd,"rm")){
-            supp_fich(rio,clientfd,buf);
-        }
-
-        else if(!strcmp(cmd,"bye")){
-            printf("Fin de la connection\n");
-            exit(0);
-        }
-
-	    else if(!strcmp(cmd,"cd")){
-            Rio_writen(clientfd, buf, strlen(buf));
-            printf("changement de repertoire\n");
-            memset(buf,0,MAXBUF);
-            Rio_readlineb(&rio,&buf,MAXLINE);
-        }
-
-        else if(!strcmp(cmd,"rm -r")){
-            Rio_writen(clientfd, buf, strlen(buf));
-            if(Rio_readlineb(&rio,&buf,MAXLINE)>0){
-                printf("%s",buf);
+                fflush(stdout);
+                }
+                buf[strlen(buf)] = '\n';
             }
+
+            else if(!strcmp(cmd, "mkdir")){
+                create_mkdir(rio, clientfd, buf);
+            }
+
+            else if(!strcmp(cmd, "rm")){
+                supp_fich(rio, clientfd, buf);
+            }
+
+            else if(!strcmp(cmd, "bye")){
+                printf("Fin de la connection\n");
+                exit(0);
+            }
+
+            else if(!strcmp(cmd,"cd")){
+                Rio_writen(clientfd, buf, strlen(buf));
+                printf("changement de repertoire\n");
+                memset(buf, 0, MAXBUF);
+                Rio_readlineb(&rio, &buf, MAXLINE);
+            }
+
+            else if(!strcmp(cmd,"rm -r")){
+                Rio_writen(clientfd, buf, strlen(buf));
+
+                if(Rio_readlineb(&rio, &buf, MAXLINE) > 0){
+                    printf("%s", buf);
+                }
+            }
+
+            else if (!strcmp(cmd, "pwd")){
+                Rio_writen(clientfd, buf, strlen(buf));
+                memset(buf, 0, MAXBUF);
+                Rio_readlineb(&rio, &buf, MAXLINE);
+                printf("%s", buf);
+            }
+
+            else { /* the server has prematurely closed the connection */
+                printf("entrez une commande valide!\n");
+                exit(0);
+
+            }
+
+        memset(cmd, 0, MAXBUF);
+        memset(buf, 0, MAXBUF);
         }
-
-        else if (!strcmp(cmd,"pwd")){
-            Rio_writen(clientfd,buf,strlen(buf));
-            memset(buf,0,MAXBUF);
-            Rio_readlineb(&rio,&buf,MAXLINE);
-            printf("%s",buf);
-        }
-
-        else { /* the server has prematurely closed the connection */
-            printf("entrez une commande valide!\n");
-            exit(0);
-
-        }
-
-    memset(cmd,0,MAXBUF);
-    memset(buf,0,MAXBUF);
-    }
     }
     Close(clientfd);
     exit(0);
