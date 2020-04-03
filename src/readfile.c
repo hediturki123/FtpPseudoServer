@@ -32,6 +32,7 @@ void transfere_fichier(char fichier[], int connfd){
     char buf[MAXLINE];
     char message[MAXLINE];
     char taille[4];
+    char taille_paquets[100];
     rio_t rio;
     fd = open(fichier, O_RDONLY, 0);
     if(fd < 0){
@@ -52,15 +53,18 @@ void transfere_fichier(char fichier[], int connfd){
             memset(buf, 0, sizeof(buf));
             memset(taille, 0, sizeof(taille));
             nbre_de_paquets++;
+            //printf("nbre de paquets = %d\n", nbre_de_paquets);
         }
-
         Rio_writen(connfd, "0", 4);
+        sprintf(taille_paquets,"%d",nbre_de_paquets);
+        strcat(taille_paquets,"\n");
+        Rio_writen(connfd, taille_paquets,strlen(taille_paquets));
+        //Rio_readnb(&rio,buf,strlen(buf));
+        //printf("buf = %s\n", buf);
         memset(buf, 0, TAILLE_BUFFER);
-        printf("nbre de paquets = %d", nbre_de_paquets);
         Close(fd);
     }
 }
-
 void decoupe(char commande[],char fichier[],char buf[]){
     int sauve_i,espace=0;
     for(int i=0;buf[i]!='\0' && buf[i]!='\n';i++){
@@ -87,6 +91,66 @@ void decoupe(char commande[],char fichier[],char buf[]){
         }
     }
 }
+
+
+void crash_et_reprise(int connfd){
+    int fd;
+    size_t n;
+    char buf[MAXBUF];
+    char message[MAXLINE];
+    char taille[4];
+    char nb_paquets[MAXLINE];
+    char fichier[MAXBUF];
+    int paquet;
+    //char taille_paquets[100];
+    rio_t crio, rio;
+    
+    Rio_readinitb(&crio, connfd);
+    Rio_readlineb(&crio,buf,MAXBUF);
+       printf("buf = %s\n", buf);
+    
+    decoupe(fichier, nb_paquets, buf);
+    paquet = atoi(nb_paquets);
+    printf("paquet = %d\n", paquet);
+    printf("fichier = %s\n", fichier);
+    printf("nb = %s\n", nb_paquets);
+
+    fd = open(fichier, O_RDONLY, 0);    
+    Rio_readinitb(&rio, fd);
+
+    if(fd < 0){
+        strcpy(message, "Erreur de fichier\n");
+        Rio_writen(connfd, message, strlen(message));
+    
+    } else {
+
+        lseek(fd,paquet,SEEK_SET);
+        Rio_writen(connfd, fichier, strlen(fichier));
+        //Rio_readinitb(&crio, fd);
+
+        while((n = Rio_readnb(&crio, buf, TAILLE_BUFFER)) > 0){
+            sprintf(taille, "%ld", n);
+            Rio_writen(connfd, taille, 4);
+            Rio_writen(connfd, buf, n); 
+            //memset(buf, 0, sizeof(buf));
+            //memset(taille, 0, sizeof(taille));
+            //nbre_de_paquets++;
+            //printf("nbre de paquets = %d\n", nbre_de_paquets);
+        }
+        Rio_writen(connfd, "0", 4);
+        //sprintf(taille_paquets,"%d",nbre_de_paquets);
+        //strcat(taille_paquets,"\n");
+        //Rio_writen(connfd, taille_paquets,strlen(taille_paquets));
+        //Rio_readnb(&rio,buf,strlen(buf));
+        //printf("buf = %s\n", buf);
+        memset(buf, 0, TAILLE_BUFFER);
+        Close(fd);
+    }
+
+}
+
+
+
 
 void recup_fichier(char fichier[],int connfd,rio_t rio){
     int fd,n;
@@ -227,49 +291,53 @@ int demande_client(int connfd)
     while(1){
         if ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
             decoupe(commande,fichier,buf);
-            if(!strcmp(commande,"get")){
+            if(!strcmp(commande, "get")){
                 transfere_fichier(fichier,connfd);
             }
 
-            else if(!strcmp(commande,"cat")){
+            else if(!strcmp(commande, "resume")){
+                crash_et_reprise(connfd);
+            }
+
+            else if(!strcmp(commande, "cat")){
                 lecture_fichier(fichier,connfd);
             }
             
-            else if(!strcmp(commande,"ls")){
-                affiche_rep(connfd,fichier);
+            else if(!strcmp(commande, "ls")){
+                affiche_rep(connfd, fichier);
             }
 
-            else if(!strcmp(commande,"put")){
-                recup_fichier(fichier,connfd,rio);
+            else if(!strcmp(commande, "put")){
+                recup_fichier(fichier, connfd, rio);
             }
 
-            else if(!strcmp(commande,"mkdir")){
-                creation_repertoire(fichier,connfd);
+            else if(!strcmp(commande, "mkdir")){
+                creation_repertoire(fichier, connfd);
             }
 
-            else if(!strcmp(commande,"cd")){
-                change_directory(connfd,fichier);
+            else if(!strcmp(commande, "cd")){
+                change_directory(connfd, fichier);
             }
 
-            else if(!strcmp(commande,"rm")){
-                remove_file(fichier,connfd);
+            else if(!strcmp(commande, "rm")){
+                remove_file(fichier, connfd);
             }
 
-            else if(!strcmp(commande,"rm -r")){
-                remove_folder(fichier,connfd);
+            else if(!strcmp(commande, "rm -r")){
+                remove_folder(fichier, connfd);
             }
 
-            else if(!strcmp(commande,"pwd")){
+            else if(!strcmp(commande, "pwd")){
                 chemin(connfd);
             }
 
-            else if(!strcmp(commande,"bye")){
+            else if(!strcmp(commande, "bye")){
                 return 1;
             }
         }
-    memset(buf,0,MAXLINE);
-    memset(fichier,0,MAXLINE);
-    memset(commande,0,10);
+    memset(buf, 0, MAXLINE);
+    memset(fichier, 0, MAXLINE);
+    memset(commande, 0, 10);
     }
     return 0;
 }
