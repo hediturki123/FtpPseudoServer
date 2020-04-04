@@ -207,11 +207,14 @@ void creation_repertoire(char fichier[],int connfd){
     char message[MAXBUF];
     char buf[MAXBUF];
     nom_fichier(fichier,buf);
-    if(mkdir(buf,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)<0){
-        strcpy(message,"Erreur lors de la création du repertoire\n");
-    }
+    if(chdir(buf)==0){strcpy(message,"Répertoir existant !\n");chdir("..");}
     else{
-        strcpy(message,"Repertoire créé\n");
+        if(mkdir(buf,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)<0){
+            strcpy(message,"Erreur lors de la création du repertoire\n");
+        }
+        else{
+            strcpy(message,"Repertoire créé\n");
+        }
     }
     Rio_writen(connfd,message,strlen(message));
 }
