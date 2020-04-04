@@ -132,6 +132,9 @@ void crash_et_reprise(int connfd,rio_t crio){
         int nbre_p = transfere_fichier(fichier, connfd);
         // on recupere le nombre de paquets du fichier
         printf("nbre p : %d\n", nbre_p);
+        sprintf(buf, "%d", nbre_p);
+        printf("buuuufer : %s\n", buf);
+        Rio_writen(connfd, buf, MAXBUF);
 
         if (paquet != (nbre_p/TAILLE_BUFFER)){
             Lseek(fd,paquet*TAILLE_BUFFER,SEEK_SET);

@@ -178,13 +178,15 @@ int main(int argc, char **argv)
                     Rio_readlineb(&rio, buf, MAXBUF);
                 
                 } else {
-                    struct stat status_fc;
-                    Fstat(fd, &status_fc);
-                    sprintf(buf, "%ld", status_fc.st_size/TAILLE_BUFFER);
-                    printf("bifle : %s\n", buf);
-                    Lseek(fd, 0, SEEK_END);
+                    //struct stat status_fc;
+                    //Fstat(fd, &status_fc);
+                    //sprintf(buf, "%ld", status_fc.st_size/TAILLE_BUFFER);
+                    //int nbre_tot;
+                    //Rio_readnb(&rio, buf, MAXBUF);
+                    //printf("bifle : %s\n", buf);
+                    Lseek(fd, 0, SEEK_CUR);
 
-                    memset(buf, 0, sizeof(buf));
+                    //memset(buf, 0, sizeof(buf));
                     int taille;
                     size_t n;
                     char buf[TAILLE_BUFFER];
