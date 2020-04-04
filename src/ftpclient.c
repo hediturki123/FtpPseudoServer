@@ -205,11 +205,10 @@ int main(int argc, char **argv)
                     close(fd);
                     
                     printf("Transfer successfully complete.\n");
-                    memset(cmd, 0, MAXBUF);
                    //remove(".log");
                 //ne pas oublier de fermer et effacer le ficheir à la fin
             }
-        }
+        } 
 
             if(!strcmp(cmd, "get")){ // Code pour la commande get
 
@@ -337,7 +336,6 @@ int main(int argc, char **argv)
 
             else { /* the server has prematurely closed the connection */
                 printf("entrez une commande valide!\n");
-                printf("buf : %s\ncmd : %s\n", buf, cmd);
                // exit(0);
 
             }
