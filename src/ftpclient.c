@@ -105,6 +105,7 @@ int main(int argc, char **argv)
     clock_t debut,fin;
     struct sockaddr_in clientaddr;
     socklen_t clientlen = sizeof(clientaddr);
+    struct stat stat;
     #ifndef DEBUG
     if (argc != 2) {
         fprintf(stderr, "usage: %s <host>\n", argv[0]);
@@ -152,7 +153,7 @@ int main(int argc, char **argv)
                 Rio_writen(clientfd, buf, strlen(buf));
                 int flog = open(".log", O_RDONLY, 0666);
                 char nom_fichier[MAXBUF];
-                rio_t fdlog;
+                rio_t fdlog, rior;
 
                 Rio_readinitb(&fdlog,flog);
                 Rio_readlineb(&fdlog,nom_fichier,MAXBUF);
@@ -178,33 +179,34 @@ int main(int argc, char **argv)
                     Rio_readlineb(&rio, buf, MAXBUF);
                 
                 } else {
-                    //struct stat status_fc;
-                    //Fstat(fd, &status_fc);
-                    //sprintf(buf, "%ld", status_fc.st_size/TAILLE_BUFFER);
-                    //int nbre_tot;
-                    //Rio_readnb(&rio, buf, MAXBUF);
-                    //printf("bifle : %s\n", buf);
-                    Lseek(fd, 0, SEEK_CUR);
+                    Rio_readinitb(&rio, fd);
+                    Fstat (fd, &stat);
+                    int nbre_p = stat.st_size/TAILLE_BUFFER;
 
-                    //memset(buf, 0, sizeof(buf));
+                    printf("nbre_p: %d\n", nbre_p);
+                    printf("buf: %s\n", buf);
+                    memset(buf, 0, sizeof(buf));
+                    Lseek(fd, 0, SEEK_END);
                     int taille;
                     size_t n;
                     char buf[TAILLE_BUFFER];
                     char taille_buf[4];
-                    
-                    while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
-                        n = Rio_readnb(&rio, buf, taille);
-                        somme += n;
-                        //printf("buffle : %s\n", buf);
+                    Rio_readinitb(&rior, clientfd);
+
+                    while((Rio_readnb(&rior, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                        n = Rio_readnb(&rior, buf, taille);
                         printf("buf = %s\n", buf);
                         write(fd, buf, n);
                         //memset(buf, 0, TAILLE_BUFFER);
                     }
+                    memset(buf, 0, MAXBUF);
+                    printf("wwwwwwwww\n");
                     close(flog);
                     close(fd);
-                    fin = clock();
-                    //printf("Transfer successfully complete.\n");
-                   // remove(".log");
+                    
+                    printf("Transfer successfully complete.\n");
+                    memset(cmd, 0, MAXBUF);
+                   //remove(".log");
                 //ne pas oublier de fermer et effacer le ficheir à la fin
             }
         }
@@ -335,6 +337,7 @@ int main(int argc, char **argv)
 
             else { /* the server has prematurely closed the connection */
                 printf("entrez une commande valide!\n");
+                printf("buf : %s\ncmd : %s\n", buf, cmd);
                // exit(0);
 
             }

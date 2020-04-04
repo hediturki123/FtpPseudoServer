@@ -105,6 +105,7 @@ void crash_et_reprise(int connfd,rio_t crio){
     int paquet;
     //char taille_paquets[100];
     rio_t rio;
+    struct stat stat;
     
     Rio_readlineb(&crio,buf,MAXBUF);
     printf("buf = %s\n", buf);
@@ -129,30 +130,30 @@ void crash_et_reprise(int connfd,rio_t crio){
     } else {
 
         Rio_readinitb(&rio, fd);
-        int nbre_p = transfere_fichier(fichier, connfd);
+        Fstat (fd, &stat);
+        int nbre_p = stat.st_size/TAILLE_BUFFER;
+        sprintf(buf, "%d", nbre_p);
         // on recupere le nombre de paquets du fichier
         printf("nbre p : %d\n", nbre_p);
-        sprintf(buf, "%d", nbre_p);
-        printf("buuuufer : %s\n", buf);
-        Rio_writen(connfd, buf, MAXBUF);
-
+        //Rio_writen(connfd, buf, MAXBUF);
+        
+        
+        memset(buf, 0, strlen(buf));
         if (paquet != (nbre_p/TAILLE_BUFFER)){
             Lseek(fd,paquet*TAILLE_BUFFER,SEEK_SET);
         }
-        //rintf("nbre : %d\n", paquet*TAILLE_BUFFER);
-        //memset(buf, 0, sizeof(buf));
-        //memset(fichier, 0, 100);
-        //memset(taille, 0, TAILLE_BUFFER);
-
+        int i = 0;
         while((n = Rio_readnb(&rio, buf, TAILLE_BUFFER)) > 0){
             
             sprintf(taille, "%ld", n);
             Rio_writen(connfd, taille, 4);
             Rio_writen(connfd, buf, n); 
             printf("buffer : %s\n", buf);
+            i++;
         }
+        printf("i = %d\n", i);
         Rio_writen(connfd, "0", 4);
-    printf("aaaaaaaaaa\n");
+        printf("aaaaaaaaaa\n");
         memset(buf, 0, TAILLE_BUFFER);
         Close(fd);
     }
