@@ -205,11 +205,10 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
 
 void creation_repertoire(char fichier[],int connfd){
     char message[MAXBUF];
-    char buf[MAXBUF];
-    nom_fichier(fichier,buf);
-    if(chdir(buf)==0){strcpy(message,"Répertoir existant !\n");chdir("..");}
+    fichier[strlen(fichier)]='\0';
+    if(chdir(fichier)==0){strcpy(message,"Répertoir existant !\n");chdir("..");}
     else{
-        if(mkdir(buf,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)<0){
+        if(mkdir(fichier,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)<0){
             strcpy(message,"Erreur lors de la création du repertoire\n");
         }
         else{
