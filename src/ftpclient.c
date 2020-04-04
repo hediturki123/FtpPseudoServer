@@ -152,14 +152,18 @@ int main(int argc, char **argv)
                 Rio_writen(clientfd, buf, strlen(buf));
                 int flog = open(".log", O_RDONLY, 0666);
                 char nom_fichier[MAXBUF];
-                Rio_readinitb(&rio,flog);
-                Rio_readlineb(&rio,nom_fichier,MAXBUF);
-                rio_t rioc;
-                Rio_readinitb(&rioc, clientfd);
+                rio_t fdlog;
+
+                Rio_readinitb(&fdlog,flog);
+                Rio_readlineb(&fdlog,nom_fichier,MAXBUF);
+                
+                nom_fichier[strlen(nom_fichier)]='\n';
+                printf("%s",nom_fichier);
                 Rio_writen(clientfd,nom_fichier,MAXBUF);
+                printf("ko\n");
                 
                 
-                Rio_readlineb(&rioc, nom_fichier, MAXBUF);
+                Rio_readlineb(&rio, nom_fichier, MAXBUF);
                 //nom_fichier[strlen(nom_fichier)] = '\0';
                 printf("nom fichier = %s\n", nom_fichier);
                 
@@ -167,12 +171,11 @@ int main(int argc, char **argv)
                 int fd;
                 nom_fichier[strlen(nom_fichier)-1] = '\0';
                 fd = open(nom_fichier, O_WRONLY, 0666);
-                //Rio_readinitb(&riot,fd);
                 
                 if (fd < 0){
                     
                     printf("le fichier ne s'est pas ouvert!!!\n");
-                    Rio_readlineb(&rioc, buf, MAXBUF);
+                    Rio_readlineb(&rio, buf, MAXBUF);
                 
                 } else {
                     struct stat status_fc;
@@ -187,8 +190,8 @@ int main(int argc, char **argv)
                     char buf[TAILLE_BUFFER];
                     char taille_buf[4];
                     
-                    while((Rio_readnb(&rioc, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
-                        n = Rio_readnb(&rioc, buf, taille);
+                    while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                        n = Rio_readnb(&rio, buf, taille);
                         somme += n;
                         //printf("buffle : %s\n", buf);
                         printf("buf = %s\n", buf);

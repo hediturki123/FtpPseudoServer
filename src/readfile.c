@@ -94,7 +94,7 @@ void decoupe(char commande[],char fichier[],char buf[]){
 }
 
 
-void crash_et_reprise(int connfd){
+void crash_et_reprise(int connfd,rio_t crio){
     int fd;
     size_t n;
     char buf[MAXBUF];
@@ -104,9 +104,8 @@ void crash_et_reprise(int connfd){
     char fichier[MAXBUF];
     int paquet;
     //char taille_paquets[100];
-    rio_t crio, rio;
+    rio_t rio;
     
-    Rio_readinitb(&crio, connfd);
     Rio_readlineb(&crio,buf,MAXBUF);
     printf("buf = %s\n", buf);
     
@@ -304,7 +303,7 @@ int demande_client(int connfd)
             }
 
             else if(!strcmp(commande, "resume")){
-                crash_et_reprise(connfd);
+                crash_et_reprise(connfd,rio);
             }
 
             else if(!strcmp(commande, "cat")){
