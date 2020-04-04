@@ -26,13 +26,14 @@ void lecture_fichier(char buf[],int connfd){
     Close(fd);
 }
 
-void transfere_fichier(char fichier[], int connfd){
+int transfere_fichier(char fichier[], int connfd){
     int fd;
     size_t n;
     char buf[MAXLINE];
     char message[MAXLINE];
     char taille[4];
     char taille_paquets[100];
+    int nbre_de_paquets = 0;
     rio_t rio;
     fd = open(fichier, O_RDONLY, 0);
     if(fd < 0){
@@ -41,7 +42,6 @@ void transfere_fichier(char fichier[], int connfd){
     
     } else {
 
-        int nbre_de_paquets = 0;
         strcat(fichier, "\n");
         Rio_writen(connfd, fichier, strlen(fichier));
         Rio_readinitb(&rio, fd);
@@ -64,6 +64,7 @@ void transfere_fichier(char fichier[], int connfd){
         memset(buf, 0, TAILLE_BUFFER);
         Close(fd);
     }
+    return nbre_de_paquets;
 }
 void decoupe(char commande[],char fichier[],char buf[]){
     int sauve_i,espace=0;
@@ -107,42 +108,49 @@ void crash_et_reprise(int connfd){
     
     Rio_readinitb(&crio, connfd);
     Rio_readlineb(&crio,buf,MAXBUF);
-       printf("buf = %s\n", buf);
+    printf("buf = %s\n", buf);
     
     decoupe(fichier, nb_paquets, buf);
     paquet = atoi(nb_paquets);
     printf("paquet = %d\n", paquet);
     printf("fichier = %s\n", fichier);
-    printf("nb = %s\n", nb_paquets);
+    strcat(fichier, "\n");
+    Rio_writen(connfd, fichier, MAXBUF);
+    //printf("nb = %s\n", nb_paquets);
 
+    fichier[strlen(fichier)-1] = '\0';
+    
     fd = open(fichier, O_RDONLY, 0);    
-    Rio_readinitb(&rio, fd);
-
+    
+    
     if(fd < 0){
         strcpy(message, "Erreur de fichier\n");
         Rio_writen(connfd, message, strlen(message));
     
     } else {
 
-        lseek(fd,paquet,SEEK_SET);
-        Rio_writen(connfd, fichier, strlen(fichier));
-        //Rio_readinitb(&crio, fd);
+        Rio_readinitb(&rio, fd);
+        int nbre_p = transfere_fichier(fichier, connfd);
+        // on recupere le nombre de paquets du fichier
+        printf("nbre p : %d\n", nbre_p);
 
-        while((n = Rio_readnb(&crio, buf, TAILLE_BUFFER)) > 0){
+        if (paquet != (nbre_p/TAILLE_BUFFER)){
+            Lseek(fd,paquet*TAILLE_BUFFER,SEEK_SET);
+        }
+        //rintf("nbre : %d\n", paquet*TAILLE_BUFFER);
+        //memset(buf, 0, sizeof(buf));
+        //memset(fichier, 0, 100);
+        //memset(taille, 0, TAILLE_BUFFER);
+
+        while((n = Rio_readnb(&rio, buf, TAILLE_BUFFER)) > 0){
+            
             sprintf(taille, "%ld", n);
             Rio_writen(connfd, taille, 4);
             Rio_writen(connfd, buf, n); 
-            //memset(buf, 0, sizeof(buf));
-            //memset(taille, 0, sizeof(taille));
-            //nbre_de_paquets++;
-            //printf("nbre de paquets = %d\n", nbre_de_paquets);
+            printf("buffer : %s\n", buf);
         }
         Rio_writen(connfd, "0", 4);
-        //sprintf(taille_paquets,"%d",nbre_de_paquets);
-        //strcat(taille_paquets,"\n");
-        //Rio_writen(connfd, taille_paquets,strlen(taille_paquets));
-        //Rio_readnb(&rio,buf,strlen(buf));
-        //printf("buf = %s\n", buf);
+    printf("aaaaaaaaaa\n");
         memset(buf, 0, TAILLE_BUFFER);
         Close(fd);
     }
