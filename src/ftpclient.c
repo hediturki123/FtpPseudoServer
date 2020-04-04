@@ -200,12 +200,12 @@ int main(int argc, char **argv)
                         //memset(buf, 0, TAILLE_BUFFER);
                     }
                     memset(buf, 0, MAXBUF);
-                    printf("wwwwwwwww\n");
                     close(flog);
                     close(fd);
                     
                     printf("Transfer successfully complete.\n");
-                   //remove(".log");
+                   remove(".log");
+                   exit(0);
                 //ne pas oublier de fermer et effacer le ficheir à la fin
             }
         } 
