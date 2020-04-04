@@ -150,40 +150,59 @@ int main(int argc, char **argv)
             get_cmd(buf, cmd);
             if (!strcmp(cmd, "resume")){
                 Rio_writen(clientfd, buf, strlen(buf));
-                 int flog;
-                flog = open(".log", 0666);
+                int flog = open(".log", O_RDONLY, 0666);
                 char nom_fichier[MAXBUF];
-                rio_t rio;
                 Rio_readinitb(&rio,flog);
                 Rio_readlineb(&rio,nom_fichier,MAXBUF);
-                printf("nom fichier = %s\n", nom_fichier);
+                rio_t rioc;
+                Rio_readinitb(&rioc, clientfd);
                 Rio_writen(clientfd,nom_fichier,MAXBUF);
                 
-               if (Rio_readlineb(&rio, &fichier, MAXBUF) > 0) {
-                    fichier[strlen(fichier)-1] = '\0';
-                    printf("Nom du fichier en réception : %s\n", fichier);
-                    int fd, taille;
+                
+                Rio_readlineb(&rioc, nom_fichier, MAXBUF);
+                //nom_fichier[strlen(nom_fichier)] = '\0';
+                printf("nom fichier = %s\n", nom_fichier);
+                
+                
+                int fd;
+                nom_fichier[strlen(nom_fichier)-1] = '\0';
+                fd = open(nom_fichier, O_WRONLY, 0666);
+                //Rio_readinitb(&riot,fd);
+                
+                if (fd < 0){
+                    
+                    printf("le fichier ne s'est pas ouvert!!!\n");
+                    Rio_readlineb(&rioc, buf, MAXBUF);
+                
+                } else {
+                    struct stat status_fc;
+                    Fstat(fd, &status_fc);
+                    sprintf(buf, "%ld", status_fc.st_size/TAILLE_BUFFER);
+                    printf("bifle : %s\n", buf);
+                    Lseek(fd, 0, SEEK_END);
+
+                    memset(buf, 0, sizeof(buf));
+                    int taille;
                     size_t n;
                     char buf[TAILLE_BUFFER];
                     char taille_buf[4];
-                    fd = open(fichier, O_CREAT | O_WRONLY, 0666);
                     
-                    while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
-                        n = Rio_readnb(&rio, buf, taille);
+                    while((Rio_readnb(&rioc, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                        n = Rio_readnb(&rioc, buf, taille);
                         somme += n;
+                        //printf("buffle : %s\n", buf);
+                        printf("buf = %s\n", buf);
                         write(fd, buf, n);
                         //memset(buf, 0, TAILLE_BUFFER);
                     }
+                    close(flog);
                     close(fd);
                     fin = clock();
-                    printf("Transfer successfully complete.\n");
-                    stat_transfere(debut, fin, somme);
-                    Rio_readlineb(&rio,buf,strlen(buf));
-                remove(".log");
+                    //printf("Transfer successfully complete.\n");
+                   // remove(".log");
                 //ne pas oublier de fermer et effacer le ficheir à la fin
             }
-            }
-
+        }
 
             if(!strcmp(cmd, "get")){ // Code pour la commande get
 
@@ -220,12 +239,12 @@ int main(int argc, char **argv)
                     stat_transfere(debut, fin, somme);
                     Rio_readlineb(&rio,buf,strlen(buf));
                     printf("buf = %s\n", buf);
-                    //memset(buf, 0, TAILLE_BUFFER);
+
                     int nbuf = atoi(buf)-10;
                     printf("nbre_de_paquets_recus : %d\nnbuf : %d\n", nbre_de_paquets_recus,nbuf);
                     if (nbre_de_paquets_recus == nbuf){
                         printf("transfert realisé à 100 pourcents\n");
-                        //Rio_writen(clientfd,"ok",strlen("ok"));
+            
                     } else {
                         //reprendre la lecture a un certain point du fichier!!!
                         //Rio_writen(clientfd,"notok",strlen("notok"));
