@@ -188,7 +188,7 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
     struct dirent *dir;
     int nb_sous_rep=0;
     char nom[MAXBUF];
-    if(strlen(fichier)!=0){
+    if(strlen(fichier)!=0 && fichier[0]!='-'){
         nb_sous_rep=1;
         for(int i=0;fichier[i]!='\0';i++){if(fichier[i]=='/'){nb_sous_rep++;}}
         chdir(fichier);
@@ -196,9 +196,8 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
     DIR *d = opendir(".");
     if (d){
         while ((dir = readdir(d)) != NULL){
-            if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..") || !strcmp(dir->d_name, ".security")){}
-            else {
-                strcpy(nom,dir->d_name);
+            strcpy(nom,dir->d_name);
+            if(nom[0]!='.'){
                 strcat(nom, " ");
                 Rio_writen(connfd,nom,strlen(nom));
             }
