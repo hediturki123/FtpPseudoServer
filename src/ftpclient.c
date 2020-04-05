@@ -347,6 +347,12 @@ int main(int argc, char **argv){
                 printf("%s", buf);
             }
 
+            else if(!strcmp(cmd,"touch")){
+                char message[MAXBUF];
+                Rio_writen(clientfd, buf, strlen(buf));
+                Rio_readnb(&rio, message, MAXBUF);
+                Fputs(message,stdout);
+            }
             else { /* the server has prematurely closed the connection */
                 printf("entrez une commande valide!\n");
                // exit(0);

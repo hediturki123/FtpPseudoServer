@@ -411,6 +411,21 @@ void demande_client(int connfd){
                 chemin(connfd);
             }
 
+            else if(!strcmp(commande,"touch")){
+                int fd;
+                char message[MAXBUF];
+                fichier[strlen(fichier)]='\0';
+                if((fd=open(fichier,O_CREAT,0666))<0){
+                    strcpy(message,"Erreur lors de la création du fichier\n");
+                    Rio_writen(connfd,message,MAXBUF);
+                }
+                else{
+                    strcpy(message,"Fichier créé\n");
+                    Rio_writen(connfd,message,MAXBUF);
+                }
+                Close(fd);
+            }
+
             else if(!strcmp(commande, "bye")){
                 return;
             }
