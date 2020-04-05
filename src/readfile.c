@@ -193,7 +193,12 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
         Rio_writen(connfd,nom,strlen(nom));
     }
     else{
-        if(strlen(fichier)!=0){d = opendir(fichier);}
+        if(strlen(fichier)!=0){
+            if((d = opendir(fichier))==NULL){
+                strcpy(nom,"Répertoire inéxistant\n");
+                Rio_writen(connfd,nom,strlen(nom));
+            }
+        }
         else{d = opendir(".");}
         if (d){
             while ((dir = readdir(d)) != NULL){
