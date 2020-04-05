@@ -9,7 +9,7 @@
 #define ESSAI_MAX 3
 pid_t nb_fils[NPROC];
 
-int demande_client(int connfd);
+void demande_client(int connfd);
 
 
 

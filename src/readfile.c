@@ -351,7 +351,7 @@ void chemin(int connfd){
 }
 
 
-int demande_client(int connfd){
+void demande_client(int connfd){
     size_t n;
     char buf[MAXLINE];
     char commande[10];
@@ -403,12 +403,11 @@ int demande_client(int connfd){
             }
 
             else if(!strcmp(commande, "bye")){
-                return 1;
+                return;
             }
         }
     memset(buf, 0, MAXLINE);
     memset(fichier, 0, MAXLINE);
     memset(commande, 0, 10);
     }
-    return 0;
 }

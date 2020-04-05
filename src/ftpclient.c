@@ -317,6 +317,7 @@ int main(int argc, char **argv){
 
             else if(!strcmp(cmd, "bye")){
                 printf("Fin de la connection\n");
+                Close(clientfd);
                 exit(0);
             }
 
