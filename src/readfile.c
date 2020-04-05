@@ -1,32 +1,38 @@
 #include "csapp.h"
 #include <dirent.h>
 #define _GNU_SOURCE
-
 #define TAILLE_BUFFER 10
-void nom_fichier(char *buf,char *nom){
+
+
+void nom_fichier(char *buf, char *nom){
     int i;
-    for(i=0;buf[i]!='\n' && buf[i]!='\0';i++){
-        nom[i]=buf[i];
+
+    for(i = 0; buf[i] != '\n' && buf[i] != '\0'; i++){
+        nom[i] = buf[i];
     }
-    nom[i]='\0';
+
+    nom[i] = '\0';
 }
 
-void lecture_fichier(char buf[],int connfd){
-    int fd,n;
+void lecture_fichier(char buf[], int connfd){
+    int fd, n;
     char Rbuf[MAXLINE];
     char nom[MAXLINE];
-    nom_fichier(buf,nom);
+    nom_fichier(buf, nom);
         
-    fd=Open(nom,O_RDONLY,S_IRUSR);
-    if(fd<0){printf("Erreur lors de l'ouverture du fichier\n");}
+    fd = Open(nom, O_RDONLY, S_IRUSR);
+    
+    if(fd < 0){
+        printf("Erreur lors de l'ouverture du fichier\n");
+    }
         
-    while((n=Read(fd,&Rbuf,MAXLINE))!=0){
+    while((n = Read(fd, &Rbuf, MAXLINE)) != 0){
         Rio_writen(connfd, Rbuf, n);
     }
     Close(fd);
 }
 
-int transfere_fichier(char fichier[], int connfd){
+int transfert_fichier(char fichier[], int connfd){
     int fd;
     size_t n;
     char buf[MAXLINE];
@@ -36,6 +42,7 @@ int transfere_fichier(char fichier[], int connfd){
     int nbre_de_paquets = 0;
     rio_t rio;
     fd = open(fichier, O_RDONLY, 0);
+    
     if(fd < 0){
         strcpy(message, "Erreur de fichier\n");
         Rio_writen(connfd, message, strlen(message));
@@ -53,40 +60,45 @@ int transfere_fichier(char fichier[], int connfd){
             memset(buf, 0, sizeof(buf));
             memset(taille, 0, sizeof(taille));
             nbre_de_paquets++;
-            //printf("nbre de paquets = %d\n", nbre_de_paquets);
         }
+
         Rio_writen(connfd, "0", 4);
-        sprintf(taille_paquets,"%d",nbre_de_paquets);
-        strcat(taille_paquets,"\n");
+        sprintf(taille_paquets, "%d", nbre_de_paquets);
+        strcat(taille_paquets, "\n");
         Rio_writen(connfd, taille_paquets,strlen(taille_paquets));
-        //Rio_readnb(&rio,buf,strlen(buf));
-        //printf("buf = %s\n", buf);
         memset(buf, 0, TAILLE_BUFFER);
         Close(fd);
     }
     return nbre_de_paquets;
 }
-void decoupe(char commande[],char fichier[],char buf[]){
-    int sauve_i,espace=0;
-    for(int i=0;buf[i]!='\0' && buf[i]!='\n';i++){
+
+
+void decoupe(char commande[], char fichier[], char buf[]){
+    int sauve_i, espace = 0;
+
+    for(int i = 0; buf[i] != '\0' && buf[i] != '\n'; i++){
+        
         if(buf[i]==' '){
-            if(buf[i+1]=='-' && buf[i+2]=='r'){
-                espace=1;
-                sauve_i=i+4;
-                strcat(commande," -r");
+            
+            if(buf[i+1] == '-' && buf[i+2] == 'r'){
+                espace = 1;
+                sauve_i = i + 4;
+                strcat(commande, " -r");
+            
+            } else {
+                espace = 1;
+                sauve_i = i+1;
             }
-            else{
-                espace=1;
-                sauve_i=i+1;
-            }
-        }
-        else{
+
+        } else {
             switch (espace){
+                
                 case 0:
-                    commande[i]=buf[i];
+                    commande[i] = buf[i];
                     break;
+                
                 case 1:
-                    fichier[i-sauve_i]=buf[i];
+                    fichier[i-sauve_i] = buf[i];
                     break;
             }
         }
@@ -94,7 +106,7 @@ void decoupe(char commande[],char fichier[],char buf[]){
 }
 
 
-void crash_et_reprise(int connfd,rio_t crio){
+void crash_et_reprise(int connfd, rio_t crio){
     int fd;
     size_t n;
     char buf[MAXBUF];
@@ -103,20 +115,15 @@ void crash_et_reprise(int connfd,rio_t crio){
     char nb_paquets[MAXLINE];
     char fichier[MAXBUF];
     int paquet;
-    //char taille_paquets[100];
     rio_t rio;
     struct stat stat;
     
-    Rio_readlineb(&crio,buf,MAXBUF);
-    printf("buf = %s\n", buf);
+    Rio_readlineb(&crio, buf, MAXBUF);
     
     decoupe(fichier, nb_paquets, buf);
     paquet = atoi(nb_paquets);
-    printf("paquet = %d\n", paquet);
-    printf("fichier = %s\n", fichier);
     strcat(fichier, "\n");
     Rio_writen(connfd, fichier, MAXBUF);
-    //printf("nb = %s\n", nb_paquets);
 
     fichier[strlen(fichier)-1] = '\0';
     
@@ -133,27 +140,20 @@ void crash_et_reprise(int connfd,rio_t crio){
         Fstat (fd, &stat);
         int nbre_p = stat.st_size/TAILLE_BUFFER;
         sprintf(buf, "%d", nbre_p);
-        // on recupere le nombre de paquets du fichier
-        printf("nbre p : %d\n", nbre_p);
-        //Rio_writen(connfd, buf, MAXBUF);
-        
+        // on recupere le nombre de paquets du fichier        
         
         memset(buf, 0, strlen(buf));
         if (paquet != (nbre_p/TAILLE_BUFFER)){
             Lseek(fd,paquet*TAILLE_BUFFER,SEEK_SET);
         }
-        int i = 0;
+
         while((n = Rio_readnb(&rio, buf, TAILLE_BUFFER)) > 0){
             
             sprintf(taille, "%ld", n);
             Rio_writen(connfd, taille, 4);
             Rio_writen(connfd, buf, n); 
-            printf("buffer : %s\n", buf);
-            i++;
         }
-        printf("i = %d\n", i);
         Rio_writen(connfd, "0", 4);
-        printf("aaaaaaaaaa\n");
         memset(buf, 0, TAILLE_BUFFER);
         Close(fd);
     }
@@ -161,23 +161,23 @@ void crash_et_reprise(int connfd,rio_t crio){
 }
 
 
-
-
 void recup_fichier(char fichier[],int connfd,rio_t rio){
-    int fd,n;
+    int fd, n;
     char buf[MAXBUF];
     char message[MAXBUF];
-    nom_fichier(fichier,buf);
-    fd=open(buf,O_CREAT | O_WRONLY,0666);
-    if(fd<0){
-        strcpy(message,"Erreur de fichier\n");
-        Rio_writen(connfd,message,strlen(message));
-    }
-    else{
-        strcpy(message,"Création du fichier ok\n");
-        Rio_writen(connfd,message,strlen(message));
-        while((n=Rio_readnb(&rio,buf,TAILLE_BUFFER))>0){
-            write(fd,buf,n);
+    nom_fichier(fichier, buf);
+    fd = open(buf, O_CREAT | O_WRONLY, 0666);
+
+    if(fd < 0){
+        strcpy(message, "Erreur de fichier\n");
+        Rio_writen(connfd, message, strlen(message));
+    
+    } else {
+        strcpy(message, "Création du fichier ok\n");
+        Rio_writen(connfd, message, strlen(message));
+        
+        while((n = Rio_readnb(&rio,buf,TAILLE_BUFFER))>0){
+            write(fd, buf, n);
         }
     }
     close(fd);
@@ -203,41 +203,53 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
     }
 }
 
-void creation_repertoire(char fichier[],int connfd){
+void creation_repertoire(char fichier[], int connfd){
     char message[MAXBUF];
-    fichier[strlen(fichier)]='\0';
-    if(chdir(fichier)==0){strcpy(message,"Répertoir existant !\n");chdir("..");}
-    else{
+    fichier[strlen(fichier)] = '\0';
+
+    if(chdir(fichier) == 0){
+        strcpy(message,"Répertoire existant !\n");
+        chdir("..");
+    
+    } else {
+
         if(mkdir(fichier,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)<0){
             strcpy(message,"Erreur lors de la création du repertoire\n");
-        }
-        else{
+        
+        } else {
             strcpy(message,"Repertoire créé\n");
         }
     }
+    
     Rio_writen(connfd,message,strlen(message));
 }
 
-void remove_file(char fichier[],int connfd){
+void remove_file(char fichier[], int connfd){
     char message[MAXBUF];
-    fichier[strlen(fichier)]='\0';
+    fichier[strlen(fichier)] = '\0';
+    
     if(remove(fichier)==0){
         strcpy(message,"Fichier supprimé\n");
+    
     } else {
         strcpy(message,"Erreur\n");
     }
+
     Rio_writen(connfd,message,strlen(message));
 }
 
-void change_directory(int connfd,char fichier[MAXBUF]){
+void change_directory(int connfd, char fichier[MAXBUF]){
     char nom[MAXBUF];
     char message[MAXBUF];
     nom_fichier(fichier,nom);
+
     if (chdir(nom) != 0){
         strcpy(message,"Aucun fichier dans ce repertoire\n");
+    
     } else {
         strcpy(message,"ok\n");
     }
+
     Rio_writen(connfd,message,strlen(message));
 }
 
@@ -272,45 +284,62 @@ int remove_rec(char fichier[], int connfd){
 }
 
 void remove_folder(char fichier[],int connfd){
-    int marque=0,nb_de_sous_dossier=0,i,j;
-    char message[MAXBUF],dir[MAXBUF];
-    fichier[strlen(fichier)]='\0';
-    for(i=0;fichier[i]!='\0';i++){if(fichier[i]=='/'){nb_de_sous_dossier++;}}
-    if(nb_de_sous_dossier!=0){
-        for(i=strlen(fichier);fichier[i]!='/';i--){}
-        fichier[i]='$';
-        for(i=0;fichier[i]!='\0';i++){
-            if(fichier[i]=='$'){
-                marque=1;
-                i++;
-                j=0;
-            }
-            if(marque){fichier[j]=fichier[i];j++;}
-            else{dir[i]=fichier[i];}
+    int marque = 0,nb_de_sous_dossier = 0, i, j;
+    char message[MAXBUF], dir[MAXBUF];
+    fichier[strlen(fichier)] = '\0';
+    
+    for(i = 0; fichier[i] != '\0'; i++){
+        if(fichier[i] == '/'){
+            nb_de_sous_dossier++;
         }
-        fichier[j]='\0';
-        dir[strlen(dir)]='\0';
+    }
+    
+    if(nb_de_sous_dossier != 0){
+        
+        for(i = strlen(fichier); fichier[i] != '/' ;i--){}
+
+        fichier[i] = '$';
+        for(i = 0; fichier[i] != '\0'; i++){
+            
+            if(fichier[i] == '$'){
+                marque = 1;
+                i++;
+                j = 0;
+            }
+            if(marque){
+                fichier[j] = fichier[i];
+                j++;
+            
+            } else {
+                dir[i] = fichier[i];
+            }
+        }
+        fichier[j] = '\0';
+        dir[strlen(dir)] = '\0';
         chdir(dir);
     }
     
-    if(remove_rec(fichier,connfd)==0){
-        strcpy(message,"Le répertoire a été supprimé\n");
-        for(i=0;i<nb_de_sous_dossier;i++){chdir("..");}
+    if(remove_rec(fichier, connfd) == 0){
+        strcpy(message, "Le répertoire a été supprimé\n");
+        
+        for(i = 0; i < nb_de_sous_dossier; i++){
+            chdir("..");
+        }
+    } else {
+        strcpy(message, "Le répertoire n'a pas pu être supprimé\n");
     }
-    else {strcpy(message,"Le répertoire n'a pas pu être supprimé\n");}
-    Rio_writen(connfd,message,strlen(message));
+    Rio_writen(connfd, message, strlen(message));
 }
 
 void chemin(int connfd){
     char cwd[MAXBUF];
     getcwd(cwd, sizeof(cwd));
-    cwd[strlen(cwd)]='\n';
-    Rio_writen(connfd,cwd,strlen(cwd));
+    cwd[strlen(cwd)] = '\n';
+    Rio_writen(connfd, cwd, strlen(cwd));
 }
 
 
-int demande_client(int connfd)
-{
+int demande_client(int connfd){
     size_t n;
     char buf[MAXLINE];
     char commande[10];
@@ -322,7 +351,7 @@ int demande_client(int connfd)
         if ((n = Rio_readlineb(&rio, buf, MAXLINE)) != 0) {
             decoupe(commande,fichier,buf);
             if(!strcmp(commande, "get")){
-                transfere_fichier(fichier,connfd);
+                transfert_fichier(fichier,connfd);
             }
 
             else if(!strcmp(commande, "resume")){

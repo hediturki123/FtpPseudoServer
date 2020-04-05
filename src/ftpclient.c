@@ -1,111 +1,133 @@
-/*
- * echoclient.c - An echo client
- */
+
 #include "csapp.h"
 #include <time.h>
 #define TAILLE_BUFFER 10
 
+
 void get_cmd(char buf[],char cmd[]){
     int i;
-    for(i=0;buf[i]!=' ' && buf[i] != '\n';i++)cmd[i]=buf[i];
-    if(buf[i+1]=='-' && buf[i+2]=='r'){
-        strcat(cmd," -r");
+    
+    for(i = 0; buf[i] != ' ' && buf[i] != '\n'; i++)cmd[i] = buf[i];
+    
+    if(buf[i+1] == '-' && buf[i+2] == 'r'){
+        strcat(cmd, " -r");
     }
 }
 
-void get_fichier(char buf[],char fichier[]){
-    int i,j;
-    for(i=0;buf[i]!=' ';i++){}
+
+void get_fichier(char buf[], char fichier[]){
+    int i, j;
+    
+    for(i = 0; buf[i] != ' '; i++){}
     i++;
-    for(j=i;buf[j]!='\0';j++){
-        fichier[j-i]=buf[j];
-    }
-    fichier[j]='\0';
-}
-/*
-void rm_bsn(char fichier[]){
-    int i;
-    for(i=0;fichier[i]!='\n' && fichier[i]!='\0';i++){}
-    fichier[i]='\0';
-}*/
 
-void stat_transfere(clock_t debut,clock_t fin,int somme){
-    double temps=(double)(fin-debut)*1000/CLOCKS_PER_SEC;
+    for(j = i; buf[j] != '\0'; j++){
+        fichier[j-i] = buf[j];
+    }
+
+    fichier[j] = '\0';
+}
+
+
+void stat_transfere(clock_t debut, clock_t fin, int somme){
+    double temps = (double)(fin-debut)*1000/CLOCKS_PER_SEC;
     double kilo_bits_par_sec=somme;
-    kilo_bits_par_sec/=100;
-    if(temps!=0.0){kilo_bits_par_sec/=temps;}
-    printf("%d bytes received in %f seconds\n(%f Kbits/sec)\n",somme,temps,kilo_bits_par_sec);
+    kilo_bits_par_sec /= 100;
+    
+    if(temps != 0.0){
+        kilo_bits_par_sec /= temps;
+    }
+
+    printf("%d bytes received in %f seconds\n(%f Kbits/sec)\n", somme, temps, kilo_bits_par_sec);
 }
 
-void envoi_fichier(rio_t rio,int clientfd,char fichier[],char buf[]){
-    int fd,n;
+
+void envoi_fichier(rio_t rio, int clientfd, char fichier[], char buf[]){
+    int fd, n;
     int donnee[TAILLE_BUFFER];
-    fichier[strlen(fichier)-1]='\0';
-    //rm_bsn(fichier);
-    fd=open(fichier,O_RDONLY);
-    if(fd<0){
+    fichier[strlen(fichier)-1] = '\0';
+
+    fd = open(fichier, O_RDONLY);
+    
+    if(fd < 0){
         printf("Erreur de fichier\n");
-    }
-    else{
+    
+    } else {
         Rio_writen(clientfd, buf, MAXBUF);
-        memset(buf,0,MAXBUF);
-        Rio_readlineb(&rio,buf,MAXBUF);
-        printf("%s",buf);
+        memset(buf, 0, MAXBUF);
+        Rio_readlineb(&rio, buf, MAXBUF);
+        printf("%s", buf);
+        
         if(!strcmp(buf,"Création du fichier ok\n")){
-            while((n=Read(fd,donnee,TAILLE_BUFFER))>0){
-                Rio_writen(clientfd,donnee,n);
+            
+            while((n = Read(fd, donnee, TAILLE_BUFFER)) > 0){
+                Rio_writen(clientfd, donnee, n);
             }
-        }
-        else{
+        
+        } else {
             printf("Erreur lors de la création du fichier\n");
         }
     }
     close(fd);
 }
-void create_mkdir(rio_t rio,int clientfd,char buf[]){
+
+
+void create_mkdir(rio_t rio, int clientfd, char buf[]){
     Rio_writen(clientfd, buf, strlen(buf));
-    Rio_readlineb(&rio,buf,MAXBUF);
-    printf("%s",buf);
+    Rio_readlineb(&rio, buf, MAXBUF);
+    printf("%s", buf);
 }
+
 
 void supp_fich(rio_t rio,int clientfd,char buf[]){
     Rio_writen(clientfd, buf, strlen(buf));
-    if (Rio_readlineb(&rio,buf,MAXBUF) > 0){
-    printf("%s",buf);
+    
+    if (Rio_readlineb(&rio, buf, MAXBUF) > 0){
+        printf("%s",buf);
     }
 }
 
-int security(rio_t rio,int clientfd){
-    char bool[10]="1";
+
+int security(rio_t rio, int clientfd){
+    char bool[10] = "1";
     char login[MAXBUF];
     char mdp[MAXBUF];
-    Fputs("Saisir votre login :\n",stdout);
-    //printf("Saisir votre login :\n");
-    Fgets(login,MAXBUF,stdin);
-    Rio_writen(clientfd,login,strlen(login));
-    Fputs("Saisir votre mot de passe :\n",stdout);
-    while(bool[0]=='1' && (Fgets(mdp,MAXBUF,stdin)!=NULL)){
-        Rio_writen(clientfd,mdp,strlen(mdp));
-        Rio_readlineb(&rio,bool,10);
-        memset(mdp,0,MAXBUF);
-        if(bool[0]=='1'){Fputs("Saisir votre mot de passe :\n",stdout);}
-    }
-    bool[strlen(bool)-1]='\0';
-    if(!strcmp(bool,"0")){return 1;}
-    else{return 0;}
+    
+    Fputs("Saisir votre login :\n", stdout);
+    Fgets(login, MAXBUF, stdin);
+    Rio_writen(clientfd, login, strlen(login));
+    Fputs("Saisir votre mot de passe :\n", stdout);
 
+    while(bool[0] == '1' && (Fgets(mdp, MAXBUF, stdin) != NULL)){
+        Rio_writen(clientfd, mdp, strlen(mdp));
+        Rio_readlineb(&rio, bool, 10);
+        memset(mdp, 0, MAXBUF);
+        
+        if(bool[0] == '1'){
+            Fputs("Saisir votre mot de passe :\n", stdout);
+        }
+    }
+
+    bool[strlen(bool)-1] = '\0';
+    if(!strcmp(bool, "0")){
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
-int main(int argc, char **argv)
-{
+
+
+int main(int argc, char **argv){
     int clientfd, port;
-    char *host, fichier[MAXBUF],buf[MAXBUF],cmd[10];
+    char *host, fichier[MAXBUF],buf[MAXBUF], cmd[10];
     rio_t rio;
     int autorisation;
     clock_t debut,fin;
     struct sockaddr_in clientaddr;
     socklen_t clientlen = sizeof(clientaddr);
     struct stat stat;
+
     #ifndef DEBUG
     if (argc != 2) {
         fprintf(stderr, "usage: %s <host>\n", argv[0]);
@@ -159,13 +181,9 @@ int main(int argc, char **argv)
                 Rio_readlineb(&fdlog,nom_fichier,MAXBUF);
                 
                 nom_fichier[strlen(nom_fichier)]='\n';
-                printf("%s",nom_fichier);
-                Rio_writen(clientfd,nom_fichier,MAXBUF);
-                printf("ko\n");
-                
+                Rio_writen(clientfd,nom_fichier,MAXBUF);                
                 
                 Rio_readlineb(&rio, nom_fichier, MAXBUF);
-                //nom_fichier[strlen(nom_fichier)] = '\0';
                 printf("nom fichier = %s\n", nom_fichier);
                 
                 
@@ -182,9 +200,8 @@ int main(int argc, char **argv)
                     Rio_readinitb(&rio, fd);
                     Fstat (fd, &stat);
                     int nbre_p = stat.st_size/TAILLE_BUFFER;
+                    printf("nbre_p = %d", nbre_p);
 
-                    printf("nbre_p: %d\n", nbre_p);
-                    printf("buf: %s\n", buf);
                     memset(buf, 0, sizeof(buf));
                     Lseek(fd, 0, SEEK_END);
                     int taille;
@@ -195,10 +212,9 @@ int main(int argc, char **argv)
 
                     while((Rio_readnb(&rior, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
                         n = Rio_readnb(&rior, buf, taille);
-                        printf("buf = %s\n", buf);
                         write(fd, buf, n);
-                        //memset(buf, 0, TAILLE_BUFFER);
                     }
+
                     memset(buf, 0, MAXBUF);
                     close(flog);
                     close(fd);
@@ -206,7 +222,6 @@ int main(int argc, char **argv)
                     printf("Transfer successfully complete.\n");
                    remove(".log");
                    exit(0);
-                //ne pas oublier de fermer et effacer le ficheir à la fin
             }
         } 
 
@@ -228,45 +243,40 @@ int main(int argc, char **argv)
                         n = Rio_readnb(&rio, buf, taille);
                         somme += n;
                         write(fd, buf, n);
-                        //memset(buf, 0, TAILLE_BUFFER);
                     }
                     int nbre_de_paquets_recus;
+                    
                     if (n == TAILLE_BUFFER){
                         nbre_de_paquets_recus = (somme/TAILLE_BUFFER);
                     } else { 
                         nbre_de_paquets_recus = (somme/TAILLE_BUFFER)+1;
                     }
-                    printf("n = %d\n", nbre_de_paquets_recus);
                     
-                    //memset(buf, 0, TAILLE_BUFFER);
                     close(fd);
                     fin = clock();
                     printf("Transfer successfully complete.\n");
                     stat_transfere(debut, fin, somme);
                     Rio_readlineb(&rio,buf,strlen(buf));
-                    printf("buf = %s\n", buf);
 
-                    int nbuf = atoi(buf)-10;
+                    int nbuf = atoi(buf);
                     printf("nbre_de_paquets_recus : %d\nnbuf : %d\n", nbre_de_paquets_recus,nbuf);
+                    
                     if (nbre_de_paquets_recus == nbuf){
-                        printf("transfert realisé à 100 pourcents\n");
+                        //printf("transfert realisé à 100 pourcents\n");
             
                     } else {
-                        //reprendre la lecture a un certain point du fichier!!!
-                        //Rio_writen(clientfd,"notok",strlen("notok"));
-                        //crash il faut reprendre a la prochaine connexion
+                        //reprendre la lecture a un certain point du fichier
                         //creer un fichier log dans lequel il y le nbre de paquets a telecharger
                         
-                        //file = fopen(".log", "aw");
-                        int flog = open(".log",O_CREAT | O_WRONLY, 0666);
+                        int flog = open(".log", O_CREAT | O_WRONLY, 0666);
                         int arret_buf = nbuf;
                         char abuff[MAXLINE];
                         sprintf(abuff, "%d", arret_buf);
                         strcat(fichier, " ");
                         write(flog, fichier, strlen(fichier));
                         write(flog, abuff, strlen(abuff));
-                        //Fputs(fichier,flog);//on met le nom du fichier qu'on a lu et on saute en ligne 
-                        //Fputs(abuff,flog);//pour ajouter ensuite le nombre de paquets recus
+                        //on met le nom du fichier qu'on a lu et on met un espace
+                        //pour ajouter ensuite le nombre de paquets recus
                         close(flog);
                     }
                 }
