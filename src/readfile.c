@@ -220,9 +220,8 @@ void creation_repertoire(char fichier[],int connfd){
 
 void remove_file(char fichier[],int connfd){
     char message[MAXBUF];
-    char buf[MAXBUF];
-    nom_fichier(fichier,buf);
-    if(remove(buf)==0){
+    fichier[strlen(fichier)]='\0';
+    if(remove(fichier)==0){
         strcpy(message,"Fichier supprimé\n");
     } else {
         strcpy(message,"Erreur\n");
