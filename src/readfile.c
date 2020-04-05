@@ -186,8 +186,14 @@ void recup_fichier(char fichier[],int connfd,rio_t rio){
 void affiche_rep(int connfd, char fichier[MAXBUF]){ 
     
     struct dirent *dir;
+    int nb_sous_rep=0;
     char nom[MAXBUF];
-    DIR *d = opendir("."); 
+    if(strlen(fichier)!=0){
+        nb_sous_rep=1;
+        for(int i=0;fichier[i]!='\0';i++){if(fichier[i]=='/'){nb_sous_rep++;}}
+        chdir(fichier);
+    }
+    DIR *d = opendir(".");
     if (d){
         while ((dir = readdir(d)) != NULL){
             if (!strcmp(dir->d_name,".") || !strcmp(dir->d_name, "..") || !strcmp(dir->d_name, ".security")){}
@@ -201,6 +207,7 @@ void affiche_rep(int connfd, char fichier[MAXBUF]){
         Rio_writen(connfd,nom,strlen(nom));
         closedir(d);
     }
+    for(int i=0;i<nb_sous_rep;i++){chdir("..");}
 }
 
 void creation_repertoire(char fichier[], int connfd){
