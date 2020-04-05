@@ -291,10 +291,14 @@ int main(int argc, char **argv){
             }
 
             else if(!strcmp(cmd, "cat")){
+                int taille;
+                char taille_buf[4];
                 Rio_writen(clientfd, buf, strlen(buf));
                 memset(buf, 0, MAXBUF);
-                while(Rio_readnb(&rio, buf, MAXBUF)){
-                    Fputs(buf, stdout);
+                while((Rio_readnb(&rio, taille_buf, 4) > 0) &&  ((taille = atoi(taille_buf)) !=0)){
+                        Rio_readnb(&rio, buf, taille);
+                        Fputs(buf,stdout);
+                        memset(buf,0,MAXBUF);
                 }
             }
 

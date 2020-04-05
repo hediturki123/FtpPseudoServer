@@ -15,19 +15,28 @@ void nom_fichier(char *buf, char *nom){
 }
 
 void lecture_fichier(char buf[], int connfd){
-    int fd, n;
-    char Rbuf[MAXLINE];
-    char nom[MAXLINE];
+    int fd,n;
+    char Rbuf[MAXLINE],nom[MAXLINE],taille[4];
+    rio_t fich;
     nom_fichier(buf, nom);
         
-    fd = Open(nom, O_RDONLY, S_IRUSR);
+    fd = open(nom, O_RDONLY);
     
     if(fd < 0){
-        printf("Erreur lors de l'ouverture du fichier\n");
+        strcpy(Rbuf,"Erreur lors de l'ouverture du fichier\n");
+        Rio_writen(connfd, Rbuf, strlen(Rbuf));
     }
-        
-    while((n = Read(fd, &Rbuf, MAXLINE)) != 0){
-        Rio_writen(connfd, Rbuf, n);
+    else{ 
+        Rio_readinitb(&fich,fd);
+        while((n = Rio_readnb(&fich, Rbuf, TAILLE_BUFFER)) > 0){
+            sprintf(taille, "%d", n);
+            Rio_writen(connfd, taille, 4);
+            Rio_writen(connfd, Rbuf, n); 
+            memset(Rbuf, 0, sizeof(Rbuf));
+            memset(taille, 0, sizeof(taille));
+        }
+
+        Rio_writen(connfd, "0", 4);
     }
     Close(fd);
 }
