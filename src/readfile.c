@@ -277,28 +277,30 @@ void remove_folder(char fichier[],int connfd){
     char message[MAXBUF];
     char dir[MAXBUF];
     fichier[strlen(fichier)]='\0';
-    if(fichier[strlen(fichier)-1]=='/'){fichier[strlen(fichier)]='\0';}
-    for(i=strlen(fichier);fichier[i]!='/';i--){}
-    fichier[i]='$';
-    for(i=0;fichier[i]!='\0';i++){
-        if(fichier[i]=='/' || fichier[i]=='$'){nb_de_sous_dossier++;}
-        if(fichier[i]=='$'){
-            marque=1;
-            i++;
-            j=0;
+    for(i=0;fichier[i]!='\0';i++){if(fichier[i]=='/'){nb_de_sous_dossier++;}}
+    if(nb_de_sous_dossier!=0){
+        for(i=strlen(fichier);fichier[i]!='/';i--){}
+        fichier[i]='$';
+        for(i=0;fichier[i]!='\0';i++){
+            if(fichier[i]=='$'){
+                marque=1;
+                i++;
+                j=0;
+            }
+            if(marque){
+                fichier[j]=fichier[i];
+                j++;
+                
+            }
+            else{
+                dir[i]=fichier[i];
+            }
         }
-        if(marque){
-            fichier[j]=fichier[i];
-            j++;
-            
-        }
-        else{
-            dir[i]=fichier[i];
-        }
+        fichier[j]='\0';
+        dir[strlen(dir)]='\0';
+        chdir(dir);
     }
-    fichier[j]='\0';
-    dir[strlen(dir)]='\0';
-    chdir(dir);
+    
     if(remove_rec(fichier,connfd)==0){
         strcpy(message,"Le répertoire a été supprimé\n");
         for(i=0;i<nb_de_sous_dossier;i++){
