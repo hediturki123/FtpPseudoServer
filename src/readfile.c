@@ -186,27 +186,28 @@ void recup_fichier(char fichier[],int connfd,rio_t rio){
 void affiche_rep(int connfd, char fichier[MAXBUF]){ 
     
     struct dirent *dir;
-    int nb_sous_rep=0;
     char nom[MAXBUF];
-    if(strlen(fichier)!=0 && fichier[0]!='-'){
-        nb_sous_rep=1;
-        for(int i=0;fichier[i]!='\0';i++){if(fichier[i]=='/'){nb_sous_rep++;}}
-        chdir(fichier);
-    }
-    DIR *d = opendir(".");
-    if (d){
-        while ((dir = readdir(d)) != NULL){
-            strcpy(nom,dir->d_name);
-            if(nom[0]!='.'){
-                strcat(nom, " ");
-                Rio_writen(connfd,nom,strlen(nom));
-            }
-        }
-        strcpy(nom, "\n");
+    DIR *d;
+    if(fichier[0]=='-'){
+        strcpy(nom,"Commande inconnu\n");
         Rio_writen(connfd,nom,strlen(nom));
-        closedir(d);
     }
-    for(int i=0;i<nb_sous_rep;i++){chdir("..");}
+    else{
+        if(strlen(fichier)!=0){d = opendir(fichier);}
+        else{d = opendir(".");}
+        if (d){
+            while ((dir = readdir(d)) != NULL){
+                strcpy(nom,dir->d_name);
+                if(nom[0]!='.'){
+                    strcat(nom, " ");
+                    Rio_writen(connfd,nom,strlen(nom));
+                }
+            }
+            strcpy(nom, "\n");
+            Rio_writen(connfd,nom,strlen(nom));
+            closedir(d);
+        }
+    }
 }
 
 void creation_repertoire(char fichier[], int connfd){

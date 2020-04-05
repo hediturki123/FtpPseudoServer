@@ -303,10 +303,8 @@ int main(int argc, char **argv){
                 Rio_writen(clientfd, buf, strlen(buf));
                 if((n = Rio_readlineb(&rio,&buf, MAXBUF) ) != 0){               
                 printf("%s", buf);
-
                 fflush(stdout);
                 }
-                buf[strlen(buf)] = '\n';
             }
 
             else if(!strcmp(cmd, "mkdir")){
